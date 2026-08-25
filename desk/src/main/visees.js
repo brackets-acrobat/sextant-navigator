@@ -150,6 +150,19 @@ function ajouter(brute) {
   return { ok: true, nouvelle: true, visee: sansVerite(v), ecrit: ecrire() };
 }
 
+/**
+ * Les identifiants du carnet, et rien d'autre.
+ *
+ * C'est ce que le pont annonce au sextant pour qu'il vide sa file. Une liste
+ * d'identifiants ne dit rien de la position, ni de l'heure, ni de la hauteur :
+ * elle peut donc traverser le pont sans qu'on ait à se demander ce qu'elle
+ * révèle. Le contraste avec `liste()`, qui doit passer par `sansVerite()`, est
+ * volontaire — moins on fait sortir, moins on a à surveiller.
+ */
+function ids() {
+  return charger().map((v) => v.id);
+}
+
 /** Le carnet, sans la vérité. C'est ce que l'interface reçoit. */
 function liste() {
   return { ok: true, visees: charger().map(sansVerite), fichier: chemin() };
@@ -176,4 +189,4 @@ function vider() {
   return { ok: true, ecrit: ecrire() };
 }
 
-module.exports = { ajouter, liste, listeAvecVerite, supprimer, vider, chemin, normaliser };
+module.exports = { ajouter, ids, liste, listeAvecVerite, supprimer, vider, chemin, normaliser };

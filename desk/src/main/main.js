@@ -152,19 +152,28 @@ sim.on('scan', (trame) => {
 // écrit, jamais l'inverse. Le renvoi d'une visée déjà connue est silencieux —
 // c'est le fonctionnement normal du protocole, pas un événement.
 pont.on('etat', (e) => diffuser('pont-etat', e));
+
+// LE CARNET EST LA SEULE RÉPONSE DU PONT, et il ne dit qu'une chose : voici ce
+// qui est ÉCRIT. Le panneau vide sa file de ce qui y figure, et garde le reste.
+//
+// Il est réannoncé après chaque rangement, à chaque branchement d'un sextant,
+// et chaque fois que le carnet change de contenu — car un carnet vidé à la
+// main est un carnet dont le sextant doit pouvoir reproposer les visées.
+//
+// Le renvoi en boucle d'une visée qu'on n'arrive pas à écrire est voulu : tant
+// que le disque refuse, elle reste chez celui des deux qui l'a encore. Et une
+// visée illisible n'entrera jamais au carnet, donc le sextant la reproposera
+// sans fin — c'est sans conséquence, c'est quelques octets toutes les cinq
+// secondes, et cela ne vient que d'un bug ou d'un client qui n'est pas le nôtre.
+function annoncerCarnet() { pont.annoncerCarnet(visees.ids()); }
+
+// Le sextant réclame le carnet en se branchant, puis au pas de son battement.
+// Cette réponse est aussi ce qui lui prouve que la table est vivante : sans
+// elle, il annoncerait une panne dès que sa file est vide — le cas normal.
+pont.on('demande-carnet', annoncerCarnet);
 pont.on('visee', (v) => {
   const res = visees.ajouter(v);
-
-  // L'ACCUSÉ NE PART QU'UNE FOIS LA VISÉE ÉCRITE. C'est lui qui autorise le
-  // panneau à l'oublier : tant qu'il ne vient pas, la visée reste là-bas et
-  // reviendra à la prochaine reconnexion. Un disque plein ne coûte donc pas
-  // deux minutes de collimation, il coûte un renvoi.
-  //
-  // Une visée illisible est acquittée quand même : elle ne deviendra jamais
-  // valide, et ne pas l'acquitter la ferait renvoyer à chaque reconnexion, sans
-  // fin. Le cas ne vient que d'un bug ou d'un client qui n'est pas le nôtre.
-  if (res.ecrit || !res.ok) pont.accuser(v && v.id);
-
+  annoncerCarnet();
   if (!res.ok || !res.nouvelle) return;
   diffuser('pont-visee', { visee: res.visee, ecrit: res.ecrit });
 });
@@ -360,8 +369,22 @@ ipcMain.handle('etalonnage-oublier', async () => etalonnage.oublier());
 ipcMain.handle('pont-etat', async () => pont.etat());
 ipcMain.handle('pont-consigne', async (_e, charge) => pont.envoyerConsigne(charge || { body: null }));
 ipcMain.handle('visees-liste', async () => visees.liste());
-ipcMain.handle('visees-supprimer', async (_e, id) => visees.supprimer(id));
-ipcMain.handle('visees-vider', async () => visees.vider());
+// Réannoncé après ces deux-là pour que les deux moitiés ne divergent jamais.
+// Une visée déjà confirmée a quitté la file du sextant : la supprimer ici la
+// supprime pour de bon. Un sextant qui était HORS LIGNE au moment de la
+// suppression, lui, la tient encore et la reproposera en se rebranchant — elle
+// rentrera donc au carnet. C'est le prix de « rien ne se perd », et c'est le
+// bon sens de l'échange.
+ipcMain.handle('visees-supprimer', async (_e, id) => {
+  const res = visees.supprimer(id);
+  annoncerCarnet();
+  return res;
+});
+ipcMain.handle('visees-vider', async () => {
+  const res = visees.vider();
+  annoncerCarnet();
+  return res;
+});
 
 // Navigation
 ipcMain.handle('declinaison', async (_e, { lat, lon } = {}) => declinaison.en(lat, lon));

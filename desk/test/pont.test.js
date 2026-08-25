@@ -168,13 +168,13 @@ test('pont — le client natif de Node accepte la poignee de main', { skip: !CLI
   }
 });
 
-test('pont — une visee monte, un accuse redescend', { skip: !CLIENT_NATIF }, async () => {
+test('pont — des visees montent, le carnet redescend', { skip: !CLIENT_NATIF }, async () => {
   const pont = new Pont();
   await pont.demarrer(portLibre());
   const recues = [];
-  // Le pont n'acquitte pas de lui-même : c'est celui qui range qui acquitte,
-  // une fois la visée écrite. Ici, le rangement est ce tableau.
-  pont.on('visee', (v) => { recues.push(v); pont.accuser(v.id); });
+  // Le pont n'annonce rien de lui-même : c'est celui qui RANGE qui dit ce qu'il
+  // détient, une fois la visée écrite. Ici, le rangement est ce tableau.
+  pont.on('visee', (v) => { recues.push(v); pont.annoncerCarnet(recues.map((x) => x.id)); });
   try {
     const { ws, recus } = await ouvrir(pont);
     const visee = {
@@ -183,16 +183,42 @@ test('pont — une visee monte, un accuse redescend', { skip: !CLIENT_NATIF }, a
       flight: { altitudeFt: 9000, groundSpeedKt: 150, trackDeg: 285 },
       truth: { lat: 34.5, lon: -122.0 },
     };
-    ws.send(JSON.stringify({ type: 'visee', visee }));
+    // La forme du panneau d'aujourd'hui : la file entière, d'un coup.
+    ws.send(JSON.stringify({ type: 'visees', visees: [visee] }));
 
     assert.ok(await jusqua(() => recues.length === 1), 'la visee n’est pas arrivee');
     assert.equal(recues[0].body, 'Vega');
     assert.equal(recues[0].hs, 43.21);
-    // L'accusé doit nommer la visée : c'est lui qui autorise le panneau à
-    // l'oublier, et un accusé sans identifiant n'autorise rien.
-    const accuse = recus.find((m) => m.type === 'recu');
-    assert.ok(accuse, 'pas d’accuse de reception');
-    assert.deepEqual(accuse.ids, [visee.id]);
+    // Le carnet doit nommer la visée : c'est lui qui autorise le panneau à
+    // l'oublier, et un carnet sans identifiants n'autorise rien.
+    const carnet = recus.find((m) => m.type === 'carnet');
+    assert.ok(carnet, 'pas d’annonce de carnet');
+    assert.deepEqual(carnet.ids, [visee.id]);
+    ws.close();
+  } finally {
+    pont.arreter();
+  }
+});
+
+test('pont — un sextant d’HIER depose encore ses visees', { skip: !CLIENT_NATIF }, async () => {
+  // Le panneau se distribue à part de l'application : un joueur peut très bien
+  // avoir mis à jour l'une sans l'autre. La forme d'avant — une visée à la
+  // fois — reste donc acceptée, et elle vaut la peine d'être éprouvée : c'est
+  // exactement le genre de compatibilité qu'on croit tenir et qui casse.
+  const pont = new Pont();
+  await pont.demarrer(portLibre());
+  const recues = [];
+  pont.on('visee', (v) => { recues.push(v); pont.annoncerCarnet(recues.map((x) => x.id)); });
+  try {
+    const { ws, recus } = await ouvrir(pont);
+    const visee = {
+      id: 'ancien-1', body: 'Altair', utc: '2026-01-15T19:30:00.000Z', hs: 12.5, seconds: 45,
+    };
+    ws.send(JSON.stringify({ type: 'visee', visee }));
+
+    assert.ok(await jusqua(() => recues.length === 1), 'la visee d’un ancien panneau est ignoree');
+    assert.equal(recues[0].id, 'ancien-1');
+    assert.ok(await jusqua(() => recus.some((m) => m.type === 'carnet')), 'pas de carnet en retour');
     ws.close();
   } finally {
     pont.arreter();

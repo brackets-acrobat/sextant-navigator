@@ -162,12 +162,30 @@ position ni l'heure, elle les lit elle-même par SimConnect.
 
 ### Ce qui a demandé le plus de soin
 
-**L'accusé de réception ne part qu'une fois la visée écrite sur le disque.** Il
-autorise le panneau à l'oublier ; le donner à la réception voudrait dire « je
-l'ai » alors qu'on ne l'a que dans une variable. Un disque plein ne coûte donc
-pas deux minutes de collimation, il coûte un renvoi. Le corollaire est que la
-même visée arrive plusieurs fois — c'est le protocole, pas un incident — d'où le
+**La table annonce ce qu'elle DÉTIENT, elle n'accuse pas réception.** Le panneau
+propose sa file entière ; la table répond avec les identifiants écrits sur son
+disque ; le panneau retire ce qui y figure. Un disque plein ne coûte donc pas
+deux minutes de collimation, il coûte un renvoi. Le corollaire est que la même
+visée arrive plusieurs fois — c'est le protocole, pas un incident — d'où le
 dédoublonnage par identifiant dans `visees.js`.
+
+**C'était un accusé de réception jusqu'au 2026-08-25, et c'était un piège.** Un
+message unique par visée : perdu, la visée restait en file *pour toujours*,
+puisque le seul déclencheur de renvoi était l'ouverture d'une connexion. Sur une
+liaison qui ne retombait jamais, le compteur du panneau restait bloqué sans
+explication ni recours. L'annonce du carnet est répétée — à chaque rangement, à
+chaque branchement, et toutes les cinq secondes tant que la file n'est pas
+vide — donc un message perdu ne coûte plus qu'un tour. La règle de fond n'a pas
+bougé : *on ne retire une visée que contre la preuve positive qu'elle est
+écrite*.
+
+**Le panneau porte désormais un vrai témoin de liaison.** Il n'en avait pas, au
+motif que la présence de la table se lit dans l'application. Le raisonnement
+oubliait que l'application est *derrière le simulateur* quand on est à
+l'oculaire : c'est ici, et nulle part ailleurs, qu'on peut apprendre que la
+table a disparu. Et `connecte` ne suffit pas — une application fermée laisse sa
+socket agoniser un moment, et c'est pendant ce moment qu'on croit parler à
+quelqu'un. D'où `lien`, qui exige que la table se soit manifestée récemment.
 
 **On peut viser sans la table, et la table peut consigner sans le panneau.** Les
 visées s'empilent dans le panneau et partent à la première ouverture de

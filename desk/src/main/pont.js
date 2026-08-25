@@ -179,12 +179,31 @@ class Decodeur {
  * Le pont.
  *
  * Événements :
- *   'etat'  { ecoute, port, clients, error }  — pour le bandeau de l'interface
- *   'visee' { … }                             — une visée arrive du sextant
+ *   'etat'            { ecoute, port, clients, error } — pour le bandeau
+ *   'visee'           { … }                    — une visée arrive du sextant
+ *   'demande-carnet'                           — un sextant réclame le carnet :
+ *                                                il vient de se brancher, ou il
+ *                                                appelle au pas du battement
  *
  * Plusieurs clients sont admis. Ce n'est pas de la générosité : pendant le
  * développement, le panneau tourne dans un navigateur ET dans le simulateur, et
  * un pont qui refuse le second est un pont qu'on ne peut pas mettre au point.
+ *
+ * ── LE CARNET REMPLACE L'ACCUSÉ ─────────────────────────────────────────────
+ *
+ * Le pont ne répond plus « reçu, id X » à chaque visée. Cet accusé n'avait
+ * qu'une chance : perdu, la visée restait bloquée dans le panneau pour
+ * toujours, puisque rien ne la relançait tant que la connexion tenait.
+ *
+ * Le panneau annonce désormais sa file entière, et le pont lui renvoie les
+ * identifiants que la table DÉTIENT — `annoncerCarnet()`. Le panneau retire ce
+ * qui y figure. Un message perdu ne coûte plus qu'un tour de relance, et le
+ * mécanisme se répare tout seul.
+ *
+ * La règle de fond n'a pas changé et ne doit jamais changer : le pont
+ * n'annonce QUE ce qui est écrit sur le disque. C'est celui qui range qui le
+ * dit (voir main.js) — annoncer à la réception voudrait dire « je l'ai » alors
+ * qu'on ne l'a que dans une variable.
  */
 class Pont extends EventEmitter {
   constructor() {
@@ -300,10 +319,14 @@ class Pont extends EventEmitter {
     socket.on('end', partir);
     socket.on('error', partir);
 
-    this._envoyer(client, { type: 'bienvenue', app: 'Sextant Navigator', version: 1 });
+    this._envoyer(client, { type: 'bienvenue', app: 'Sextant Navigator', version: 2 });
     // Un panneau qui arrive en cours de vol doit savoir tout de suite quel
     // astre viser : sans ce rappel, il attendrait que le navigateur re-clique.
     if (this.consigne) this._envoyer(client, this.consigne);
+    // Et il doit savoir tout de suite ce que la table détient déjà, sinon un
+    // panneau qui rouvre garde en file des visées rangées depuis longtemps.
+    // Le pont ne connaît pas le carnet : c'est celui qui le tient qui répond.
+    this.emit('demande-carnet');
     this._diffuserEtat();
   }
 
@@ -321,32 +344,53 @@ class Pont extends EventEmitter {
     }
     if (!msg || typeof msg !== 'object') return;
 
+    // La file du panneau, annoncée en bloc. Le pont ne range pas lui-même et
+    // n'annonce rien : il transmet, et c'est celui qui ÉCRIT qui répondra avec
+    // le carnet. Voir l'en-tête de cette classe.
+    if (msg.type === 'visees' && Array.isArray(msg.visees)) {
+      for (const v of msg.visees) if (v) this.emit('visee', v);
+      return;
+    }
+
+    // L'appel du sextant : « es-tu là, et que détiens-tu ? ». Il arrive au pas
+    // du battement quand la file du panneau est vide, c'est-à-dire dans le cas
+    // normal. Sans lui, une table vivante et un sextant à jour resteraient
+    // muets l'un pour l'autre, et le panneau annoncerait une panne inexistante.
+    if (msg.type === 'appel') {
+      this.emit('demande-carnet');
+      return;
+    }
+
+    // La forme d'avant, une visée à la fois. Gardée parce que le panneau se
+    // distribue à part de l'application : un joueur peut très bien avoir mis à
+    // jour l'une sans l'autre, et un sextant d'hier doit pouvoir déposer ses
+    // visées dans une table d'aujourd'hui.
     if (msg.type === 'visee' && msg.visee) {
-      // Le pont N'ACQUITTE PAS lui-même. L'accusé autorise le panneau à oublier
-      // la visée : le donner à la réception voudrait dire « je l'ai », alors
-      // qu'on ne l'a que dans une variable. Si le disque refuse juste après, le
-      // travail du joueur n'existe plus nulle part.
-      //
-      // C'est donc celui qui RANGE qui acquitte (voir main.js), une fois la
-      // visée écrite. Tant qu'il ne l'a pas fait, le panneau la garde et la
-      // renverra à la prochaine reconnexion.
       this.emit('visee', msg.visee);
       return;
     }
+
     if (msg.type === 'bonjour') {
       this.emit('etat', Object.assign(this.etat(), { salut: msg }));
     }
   }
 
   /**
-   * Accuse réception d'une visée : le panneau peut l'oublier.
+   * Annonce ce que la table DÉTIENT — les visées écrites sur son disque.
+   *
+   * Le panneau retire de sa file tout ce qui y figure. À appeler après chaque
+   * rangement et à chaque connexion : c'est le seul message qui vide une file,
+   * et il est fait pour être répété sans dommage.
    *
    * Diffusé à tous les clients plutôt qu'à celui qui a envoyé — le panneau
-   * filtre sur l'identifiant, et un panneau rouvert entre-temps n'est plus la
-   * même connexion que celui qui avait émis.
+   * filtre sur les identifiants, et un panneau rouvert entre-temps n'est plus
+   * la même connexion que celui qui avait émis.
+   *
+   * @param {string[]} ids les identifiants du carnet.
    */
-  accuser(id) {
-    for (const c of this.clients) this._envoyer(c, { type: 'recu', ids: [id] });
+  annoncerCarnet(ids) {
+    const liste = Array.isArray(ids) ? ids.filter((x) => typeof x === 'string') : [];
+    for (const c of this.clients) this._envoyer(c, { type: 'carnet', ids: liste });
   }
 
   /** La consigne : quel astre viser. `body: null` l'annule. */
