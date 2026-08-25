@@ -1,0 +1,146 @@
+/*
+ * Dimensionnement de la fenetre du panneau.
+ *
+ * Le gabarit `ingame-ui` de MSFS empile plusieurs conteneurs entre le corps de
+ * la page et notre iframe : `.ingameUiWrapper`, `.ingameUiContent`, et le
+ * custom element lui-meme. Aucun ne porte de hauteur definie, et leurs regles
+ * viennent d'une feuille chargee apres la notre.
+ *
+ * Consequence, apprise en vol : un `height: 100%` sur l'iframe ne se resout
+ * contre RIEN et s'effondre sur le `min-height` — l'instrument n'occupait que
+ * le haut de la fenetre, le reste etait noir, et il fallait la molette pour
+ * voir le carnet.
+ *
+ * Le remede est celui qu'emploient les panneaux a iframe qui fonctionnent :
+ * forcer une chaine flex continue, du `body` jusqu'a l'iframe, avec des
+ * `!important` puisqu'on ecrase le gabarit. Les `min-height: 0` ne sont pas
+ * decoratifs : sans eux, un enfant flex refuse de retrecir sous sa taille de
+ * contenu et redonne des barres de defilement.
+ */
+
+body.border-box {
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+ingamepanel-sextant {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+ingame-ui#Sextant {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+ingame-ui#Sextant.ingameUiFrame {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  /* Pas de fond de cadre : l'instrument peint le sien, du bord au bord. Ce que
+     MSFS met derriere ne se verrait que si l'un des deux ne remplissait pas sa
+     surface — c'est-a-dire jamais, sauf pendant une animation d'ouverture. */
+  background-color: transparent !important;
+}
+
+/*
+ * LE BANDEAU DE TITRE : INVISIBLE, MAIS TOUJOURS LA.
+ *
+ * Le reflexe serait de retirer l'attribut `title` de <ingame-ui> — le moteur
+ * fait alors `this.headerElement.remove()` (ingameUi.js) et le bandeau
+ * disparait pour de bon. C'EST PRECISEMENT CE QU'IL NE FAUT PAS FAIRE ICI : le
+ * deplacement de la fenetre est accroche a ce bandeau et a lui seul
+ * (`new DragDropHandler(this, { dragElement: this.headerElement })`). Le
+ * supprimer, c'est clouer le panneau au coin ou MSFS l'a pose.
+ *
+ * On reprend donc le procede que le moteur emploie lui-meme pour ses panneaux
+ * sans cadre — sa classe `invisibleHeader` vaut `opacity: 0.01`, pas
+ * `display: none` : l'element reste dans la page, donc il reste une poignee.
+ * Ici on ne peut pas attendre cette classe, qui depend d'une propriete de la
+ * definition compilee du panneau ; on l'applique nous-memes.
+ *
+ * Et on le sort du flux : sans cela le bandeau garderait sa hauteur — 84/2160
+ * de l'ecran, une quarantaine de pixels de vide en haut de l'instrument. En
+ * absolu, il flotte au-dessus de la barre d'etat, qui ne porte aucun clic.
+ */
+ingame-ui#Sextant ingame-ui-header {
+  opacity: 0.01 !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 10 !important;
+  background: transparent !important;
+  margin: 0 !important;
+  transition: opacity 0.15s ease-in-out !important;
+}
+
+/*
+ * ET IL REVIENT SOUS LA SOURIS.
+ *
+ * Sans cela le bandeau serait invisible ET ses boutons resteraient cliquables :
+ * fermer, epingler et reduire seraient trois fausses manoeuvres a l'aveugle,
+ * dans la bande ou l'on va justement chercher la poignee de deplacement.
+ *
+ * Au survol il reparait donc en entier. On ne perd rien — ni le detachement en
+ * fenetre externe, ni la fermeture — et on ne voit plus rien tant qu'on ne
+ * s'en occupe pas. C'est la barre de titre d'un instrument, pas d'un logiciel.
+ */
+ingame-ui#Sextant ingame-ui-header:hover {
+  opacity: 1 !important;
+  background: var(--backgroundColorPanel) !important;
+}
+
+ingame-ui#Sextant .ingameUiWrapper,
+ingame-ui#Sextant .ingameUiContent {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+#SextantWrap {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  /* Transparent comme le cadre et comme le `body` de l'iframe. Ces trois fonds
+     se superposaient : en eclaircir un seul ne se voit pas. */
+  background: transparent !important;
+}
+
+#SextantFrame {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  border: 0;
+  display: block;
+  /* Une iframe peint un fond opaque par defaut, quoi que dise le document
+     qu'elle porte. Sans cette ligne, le `body: transparent` de l'application
+     ne se verrait jamais. */
+  background: transparent !important;
+}

@@ -1,0 +1,497 @@
+/*
+ * Palette d'instrument, pas de page web : peinture noire craquelee, bagues
+ * d'aluminium satine, gravures creme, eclairage ambre. Rien d'autre.
+ *
+ * Tout est en degrades — aucune image. Les photographies viendront plus tard
+ * par-dessus, sans changer cette structure.
+ *
+ * Contrainte de moteur : le panneau tourne dans Coherent GT, qui est ancien.
+ * On s'en tient a des degres lineaires et radiaux, jamais coniques, et a des
+ * evenements souris plutot que pointeur.
+ */
+
+/*
+ * La police est EMBARQUEE, et ce n'est pas un caprice.
+ *
+ * Premier essai dans le simulateur : « 45°00,0′ » s'affichait « 45?00,0? ». Le
+ * moteur du panneau n'expose pas les polices de Windows — la sonde montre qu'il
+ * les resout hors du simulateur, mais pas dedans — et sa police de repli n'a ni
+ * le degre, ni le prime, ni l'apostrophe courbe. Sur un instrument dont toute
+ * la lecture est en degres et en minutes, c'est redhibitoire.
+ *
+ * DejaVu Sans, reduite aux seuls caracteres employes par le panneau : 20 ko par
+ * graisse au lieu de 700. Licence Bitstream Vera, qui autorise explicitement la
+ * redistribution — voir fonts/LICENSE-DejaVu.txt.
+ *
+ * TrueType, et non WOFF : les 210 declarations @font-face des paquets installes
+ * sur cette machine emploient toutes .ttf, aucune .woff. Le premier essai en
+ * WOFF n'a rien change dans le simulateur alors que la sonde le chargeait
+ * parfaitement hors de lui — le chargeur de polices du jeu ne parait pas savoir
+ * decompresser le WOFF. On suit donc la convention qui a des preuves.
+ *
+ * Les familles systeme restent en repli : si un jour le moteur les expose, rien
+ * ne casse.
+ */
+@font-face {
+  font-family: "SextantSans";
+  src: url("fonts/sextant-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "SextantSans";
+  src: url("fonts/sextant-bold.ttf") format("truetype");
+  font-weight: 600 700;
+  font-style: normal;
+}
+
+:root {
+  --paint: #1c1e21;        /* peinture du corps */
+  --paint-hi: #2a2d31;
+  --plate: #24272b;        /* platine des commandes */
+  --metal-d: #3d4247;      /* bague satinee, ombre */
+  --metal: #7b838b;
+  --metal-hi: #b3bcc4;
+  --engrave: #cfc9b8;      /* gravure creme */
+  --engrave-dim: #8d8878;
+  --lamp: #d8a24a;         /* lampe ambre */
+  --lamp-soft: #8a6a33;
+  --recess: #0a0c0e;       /* fond des fenetres encastrees */
+  --line: #34383d;
+  --ink: #cdd2d7;
+  --dim: #848c94;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  /*
+   * TRANSPARENT, et c'est voulu.
+   *
+   * C'etait `#0d0f11` : un noir presque noir, donc invisible tant que le cadre
+   * MSFS etait opaque lui aussi. Le cadre rendu transparent, ce fond restait le
+   * dernier rectangle plein — visible sur les cotes, l'instrument etant borne a
+   * 480 px et centre.
+   *
+   * L'appareil, lui, garde son fond : c'est de la tole peinte. Ce qui devient
+   * transparent, c'est ce qu'il y a AUTOUR — donc le decor du simulateur.
+   */
+  background: transparent;
+  color: var(--ink);
+  font: 13px/1.4 "SextantSans", "Segoe UI", Arial, system-ui, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/*
+ * Le contenu peut depasser la fenetre du panneau — le carnet s'allonge a chaque
+ * visee — et il faut alors defiler. Le moteur est un WebKit, donc la barre se
+ * dessine avec les pseudo-elements webkit ; sans cela elle reste invisible et
+ * on ne voit meme pas qu'il y a autre chose plus bas.
+ */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0c0e;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--metal-d), #2b2f34);
+  border-radius: 5px;
+  border: 1px solid #14171a;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--metal), var(--metal-d));
+}
+
+/* ---------------------------------------------------------------- corps -- */
+
+.instrument {
+  background:
+    linear-gradient(180deg, var(--paint-hi), var(--paint) 18%, var(--paint) 82%, #16181a);
+  border-bottom: 1px solid #000;
+  padding-bottom: 10px;
+  /* Un panneau large ne doit pas etirer l'instrument : un sextant a une
+     taille. Au-dela, on le centre au lieu de le deformer. */
+  max-width: 480px;
+  margin: 0 auto;
+  /* Le panneau ne contient plus que l'instrument : il prend la hauteur, au
+     lieu de la partager avec une table a cartes qui est partie a cote. */
+  min-height: 100%;
+}
+
+/*
+ * Le pied de l'instrument. Il a remplace la barre de titre du haut, qui n'avait
+ * plus lieu d'etre une fois le cadre du panneau rendu transparent : une bande
+ * posee tout en haut aurait flotte sur le decor du simulateur, et elle occupait
+ * la meme place que la barre de titre invisible de MSFS.
+ *
+ * Centre, et non pas etale : il ne porte plus que l'heure, plus une mention
+ * d'attente qui n'apparait presque jamais.
+ */
+.pied {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 10px 6px;
+}
+
+.clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  color: var(--lamp);
+  text-shadow: 0 0 6px rgba(216, 162, 74, 0.35);
+}
+
+.src {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 2px;
+  border: 1px solid var(--line);
+  color: var(--dim);
+}
+
+/* `.src.live` n'existe toujours pas : rien n'annonce que tout va bien. Une
+   liaison saine et une file vide ne s'affichent pas du tout — c'est l'etat
+   normal, et un panneau qui felicite est un panneau qu'on n'ecoute plus. */
+
+/* Visees deposees, pas encore confirmees par le carnet : le travail n'est pas
+   perdu, mais il n'est pas encore arrive. L'ambre est la couleur de l'attente
+   sur ce panneau, comme la lampe du poussoir. */
+.src.pending {
+  color: var(--lamp);
+  border-color: var(--lamp-soft);
+}
+
+/* PLUS DE TABLE AU BOUT. Ce n'est pas de l'attente, c'est une panne : on peut
+   viser encore, mais plus rien ne part. Le rouge eteint du panneau — celui des
+   messages d'erreur — et non l'ambre, pour qu'un coup d'oeil suffise a les
+   distinguer sans lire. */
+.src.horsligne {
+  color: #e08b7a;
+  border-color: rgba(224, 139, 122, 0.45);
+}
+
+/* -------------------------------------------------------------- consigne -- */
+
+/*
+ * La consigne du navigateur, sur une plaque gravee sous la barre. Elle est
+ * discrete par construction : c'est un rappel, pas un instrument. Le seul
+ * organe qui compte reste l'oculaire.
+ */
+/*
+ * La consigne est passee du haut au bas de l'appareil, entre le poussoir et
+ * l'heure. Elle est CENTREE : elle ne borde plus rien, elle est posee sur la
+ * tole comme une etiquette, et un bloc etale sur toute la largeur ferait une
+ * barre de plus dans un panneau qui vient d'en perdre une.
+ *
+ * Le trait passe donc en haut — il separe du poussoir, plus de la lunette.
+ */
+.consigne {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  padding: 5px 10px 4px;
+  margin-top: 4px;
+  border-top: 1px solid #000;
+  background: linear-gradient(180deg, #191c1f, #131518);
+}
+
+.consigne-lbl {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--engrave-dim);
+}
+
+.consigne-val {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--engrave);
+}
+
+/* Aucune consigne : la plaque reste, le texte s'efface. Une plaque qui
+   disparait ferait sauter la mise en page a chaque changement d'astre. */
+.consigne-val.vide { color: var(--engrave-dim); }
+
+/* -------------------------------------------------------------- oculaire -- */
+
+/*
+ * L'oculaire domine : c'est l'instrument, pas un apercu. Il reste carre — la
+ * largeur suit la hauteur disponible, faute de quoi un panneau large en ferait
+ * une ellipse.
+ */
+.scope {
+  position: relative;
+  margin: 10px auto 6px;
+  width: min(calc(100% - 20px), 56vh);
+  aspect-ratio: 1 / 1;
+}
+
+/* Fond transparent : les coins laissent voir la peinture du corps, sinon la
+   lunette flotte dans un carre noir. */
+#field {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+/* ------------------------------------------------------------- fenetres -- */
+
+.counters {
+  display: flex;
+  gap: 8px;
+  padding: 6px 10px 2px;
+}
+
+.counter {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.counter.narrow {
+  flex: 0 0 88px;
+}
+
+.lbl {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--engrave-dim);
+  margin-bottom: 3px;
+}
+
+/* Fenetre encastree : fond noir, lueur ambre, ombre portee vers l'interieur. */
+.window {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 5px 6px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #05070a, var(--recess) 45%, #0f1216);
+  border: 1px solid #000;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.95), 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: var(--lamp);
+  font-variant-numeric: tabular-nums;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 7px rgba(216, 162, 74, 0.4);
+  min-height: 34px;
+}
+
+.window.mini {
+  font-size: 15px;
+  min-height: 28px;
+}
+
+/*
+ * La fenetre d'azimut en porte deux : l'azimut vrai de la couronne, et le
+ * gisement. Les libelles sont graves, pas allumes — ils ne sont pas la valeur.
+ */
+.bearingWin {
+  gap: 4px;
+  justify-content: space-evenly;
+}
+
+.bearingWin .sub {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--engrave-dim);
+  text-shadow: none;
+  margin-right: 1px;
+}
+
+.window.wideWin {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Un chiffre = une cellule, comme les tambours d'un compteur mecanique. */
+.dgt {
+  display: inline-block;
+  min-width: 0.62em;
+  text-align: center;
+}
+
+.sym {
+  display: inline-block;
+  color: var(--lamp-soft);
+  padding: 0 1px;
+}
+
+/* Le chiffre des dixiemes roule : c'est le detail qui fait « mecanique ». */
+.roll {
+  display: inline-block;
+  height: 1.15em;
+  overflow: hidden;
+  vertical-align: bottom;
+  min-width: 0.62em;
+}
+
+.roll > span {
+  display: block;
+}
+
+.roll em {
+  display: block;
+  height: 1.15em;
+  line-height: 1.15em;
+  text-align: center;
+  font-style: normal;
+}
+
+/* ------------------------------------------------------------ commandes -- */
+
+.deck {
+  display: flex;
+  gap: 8px;
+  padding: 6px 10px 0;
+}
+
+.ctl {
+  flex: 1 1 0;
+  min-width: 0;
+  background: linear-gradient(180deg, var(--plate), #1d2023);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 5px 7px 7px;
+}
+
+/*
+ * Les deux couronnes ont une largeur FIXE, et ce n'est pas un choix de mise en
+ * page : leur largeur est le diametre du cylindre, donc leur sensibilite. Une
+ * couronne en `1fr` changerait de pas quand on redimensionne la fenetre.
+ */
+.ctl.wide {
+  display: grid;
+  grid-template-columns: 90px 90px 1fr;
+  grid-template-areas: 'lbl lbl lbl' 'drum fine win';
+  gap: 6px;
+  align-items: center;
+}
+
+.ctl.wide .lbl { grid-area: lbl; }
+.ctl.wide #bearingKnob { grid-area: drum; }
+.ctl.wide #bearingFine { grid-area: fine; }
+.ctl.wide .window { grid-area: win; }
+
+/*
+ * Molette moletee : un <canvas>, et le corps comme les graduations sont peints
+ * dans `drum.js`. Le degrade CSS d'avant ne pouvait pas tourner a la bonne
+ * vitesse ni porter de chiffres.
+ *
+ * LA TAILLE ICI EST LE RAYON DU CYLINDRE, donc elle commande la sensibilite :
+ * un tambour vertical roule sur sa HAUTEUR, une couronne horizontale sur sa
+ * LARGEUR, et rouler un cylindre de rayon R d'un arc de p pixels le tourne de
+ * p/R radians. Elargir une molette la ralentit — ces dimensions ne sont pas
+ * decoratives, ce sont les valeurs eprouvees a l'ecran.
+ */
+.drum {
+  display: block;
+  width: 100%;
+  height: 52px;
+  border-radius: 4px;
+  cursor: ns-resize;
+  background: #0e0d0c;
+}
+
+.drum:focus-visible {
+  outline: 2px solid var(--lamp);
+  outline-offset: 2px;
+}
+
+/* La bulle se regle rarement et par petites touches : plus petite molette,
+   donc plus fine — 1 tour vaut 1° de diametre. */
+.drum.small {
+  height: 44px;
+}
+
+/* La couronne d'azimut se manivelle : axe vertical, on la tire lateralement.
+   Sa largeur est figee par la grille de `.ctl.wide` ci-dessus. */
+.drum.horiz {
+  height: 36px;
+  cursor: ew-resize;
+}
+
+.drum.turning {
+  box-shadow: 0 0 0 1px rgba(216, 162, 74, 0.45);
+}
+
+/* Roue de filtres : huit crans, celui en service eclaire. */
+.wheel {
+  display: flex;
+  gap: 2px;
+  height: 24px;
+  border-radius: 3px;
+  border: 1px solid #000;
+  overflow: hidden;
+  background: #15181b;
+  cursor: pointer;
+}
+
+.wheel > span {
+  flex: 1 1 0;
+  background: linear-gradient(180deg, #6a727a, #3a4046 55%, #23262a);
+  border-right: 1px solid #0c0e10;
+}
+
+.wheel > span:last-child {
+  border-right: 0;
+}
+
+.wheel > span.on {
+  background: linear-gradient(180deg, var(--lamp), #8a6a33 60%, #4a3a1c);
+}
+
+/*
+ * Les deux commandes peintes : selecteur de grossissement et poussoir.
+ * Tout leur relief est dans `controls.js` — ici on ne fixe que la place
+ * qu'elles occupent, comme pour les tambours.
+ */
+.plate {
+  display: block;
+  width: 100%;
+  border: 1px solid #000;
+  border-radius: 3px;
+  background: #0e0d0c;
+  cursor: pointer;
+}
+
+.plate:focus-visible {
+  outline: 2px solid var(--lamp);
+  outline-offset: 2px;
+}
+
+.plate.sel {
+  height: 30px;
+}
+
+/* Le poussoir a droit a plus de hauteur : c'est le seul organe qui declenche
+   quelque chose, et on doit pouvoir le viser sans hesiter. */
+.plate.shoot {
+  height: 40px;
+  margin-top: 2px;
+}
+
+.hint {
+  color: var(--dim);
+  font-size: 11px;
+  margin: 4px 10px 0;
+}
+

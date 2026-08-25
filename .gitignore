@@ -11,20 +11,40 @@ desk/config.json
 *.log
 
 # --- L'ADDON MSFS NE PART PAS DANS CE DÉPÔT ---------------------------------
-# `sextant-navigator` ne publie que l'APPLICATION de bureau. Le panneau du
-# simulateur est un autre objet, avec son propre cycle de sortie (flightsim.to,
-# un paquet Community, un .spb compilé au SDK) — il vivra ailleurs.
+# LE PANNEAU EST VERSIONNÉ DEPUIS LE 2026-08-25, et il ne l'était pas.
 #
-# Le noyau `src/`, LUI, RESTE : ce n'est pas l'addon, c'est le calcul. En
-# développement `desk` l'importe depuis `../src` (voir desk/src/main/noyau.js)
-# et `extraResources` l'y prend pour l'empaqueter. Sans lui, le dépôt ne
-# démarre pas et `npm run dist` échoue. Ne pas l'exclure « pour faire propre ».
-panel/
+# L'argument d'origine se tenait : `sextant-navigator` ne publie que
+# l'APPLICATION de bureau, le panneau est un autre objet avec son propre cycle
+# de sortie — un paquet Community, un .spb compilé au SDK — donc il vivrait
+# ailleurs. Sauf qu'« ailleurs » n'existait pas : il vivait sur une seule
+# machine, sans historique.
+#
+# Ce jour-là, une panne logée dans son pont a coûté une journée entière de
+# diagnostic. Trois réécritures successives, sans jamais pouvoir comparer à
+# l'état d'avant ni revenir en arrière — et la seule sauvegarde était une copie
+# manuelle dans un dossier temporaire. Le cycle de sortie séparé reste vrai ;
+# il ne justifie pas l'absence de filet.
+#
+# Le noyau `src/` n'a jamais été concerné : ce n'est pas l'addon, c'est le
+# calcul. En développement `desk` l'importe depuis `../src` (voir
+# desk/src/main/noyau.js) et `extraResources` l'y prend pour l'empaqueter. Sans
+# lui, le dépôt ne démarre pas et `npm run dist` échoue.
+#
+# Seuls restent ignorés les PRODUITS DÉRIVÉS du panneau, tous régénérables :
 
-# Ce test-là dessine la Lune du CHAMP DE VISÉE, donc il importe
-# `panel/.../viewport.js`. Sans le panneau, il échoue à l'import et fait tomber
-# tout `npm test`. Il reste sur la machine, avec le panneau qu'il éprouve.
-test/viewport-moon.test.js
+# Copie de `src/`, refaite à chaque `npm run panel:build`. La versionner
+# dupliquerait le noyau dans le dépôt et ferait bouger 15 fichiers à chaque
+# retouche du calcul.
+panel/sixk-sextant/html_ui/InGamePanels/Sextant/app/core/
+
+# Sorties du SDK. `Build/PackageSources/`, lui, est bien la SOURCE du .spb et
+# reste versionné — le .spb compilé aussi, parce que le régénérer demande le
+# SDK et une minute de FlightSimulator2024.exe.
+panel/Build/Packages/
+panel/Build/_Temp/
+
+# Archives de diffusion.
+panel/*.zip
 
 # --- Le reste de l'atelier, qui ne sert pas à l'application ------------------
 # `reference/` et `examples/` NE SONT PAS ICI, et c'est délibéré : 20 Ko de

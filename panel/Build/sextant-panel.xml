@@ -1,0 +1,7 @@
+<Project Version="2" Name="sixk-sextant" FolderName="Packages">
+	<OutputDirectory>.</OutputDirectory>
+	<TemporaryOutputDirectory>_Temp</TemporaryOutputDirectory>
+	<Packages>
+		<Package>PackageDefinitions\sextant-panel.xml</Package>
+	</Packages>
+</Project>

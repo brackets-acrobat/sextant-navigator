@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SEXTANT</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="/SCSS/common.css" />
+    <link rel="stylesheet" href="./Sextant.css" />
+    <script type="text/javascript" src="/JS/coherent.js"></script>
+    <script type="text/javascript" src="/JS/common.js"></script>
+    <script type="text/javascript" src="/JS/dataStorage.js"></script>
+    <script type="text/javascript" src="/JS/buttons.js"></script>
+    <script type="text/javascript" src="/JS/simvar.js"></script>
+    <script type="text/javascript" src="/JS/Services/ToolBarPanels.js"></script>
+    <link rel="import" href="/templates/ingameUi/ingameUi.html" />
+    <link rel="import" href="/templates/ingameUiHeader/ingameUiHeader.html" />
+    <script type="text/javascript" src="./Sextant.js"></script>
+  </head>
+  <body class="border-box">
+    <ingamepanel-sextant>
+      <ingame-ui
+        id="Sextant"
+        panel-id="PANEL_SEXTANT"
+        class="ingameUiFrame panelInvisible"
+        title="Bubble sextant"
+        content-fit="true"
+        min-width="40"
+        min-height="48"
+        resize="both">
+        <!--
+          Tout l'instrument vit dans cette iframe. Le cadre MSFS ne sert qu'a la
+          fenetre, au titre et au bouton de barre : dedans, c'est une page web
+          ordinaire, donc du code qui se developpe et se teste dans un navigateur.
+        -->
+        <div id="SextantWrap">
+          <iframe id="SextantFrame" src="app/index.html" frameborder="0"></iframe>
+        </div>
+      </ingame-ui>
+    </ingamepanel-sextant>
+  </body>
+</html>

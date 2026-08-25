@@ -1,0 +1,17 @@
+{
+  "dependencies": [],
+  "content_type": "MISC",
+  "title": "Bubble Sextant",
+  "manufacturer": "Kollsman",
+  "creator": "sixk",
+  "package_version": "0.1.0",
+  "minimum_game_version": "1.8.14",
+  "builder": "Microsoft Flight Simulator 2024",
+  "package_order_hint": "",
+  "release_notes": {
+    "neutral": {
+      "LastUpdate": "",
+      "OlderHistory": ""
+    }
+  }
+}

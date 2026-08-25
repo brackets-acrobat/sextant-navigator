@@ -1,0 +1,22 @@
+<AssetPackage Name="sixk-sextant" Version="0.1.0">
+	<ItemSettings>
+		<ContentType>SPB</ContentType>
+		<Title>sixk-sextant</Title>
+		<Manufacturer>Kollsman</Manufacturer>
+		<Creator>sixk</Creator>
+	</ItemSettings>
+	<Flags>
+		<VisibleInStore>false</VisibleInStore>
+		<CanBeReferenced>false</CanBeReferenced>
+	</Flags>
+	<AssetGroups>
+		<AssetGroup Name="sixk-sextant">
+			<Type>SPB</Type>
+			<Flags>
+				<FSXCompatibility>false</FSXCompatibility>
+			</Flags>
+			<AssetDir>PackageSources\</AssetDir>
+			<OutputDir>Build\</OutputDir>
+		</AssetGroup>
+	</AssetGroups>
+</AssetPackage>

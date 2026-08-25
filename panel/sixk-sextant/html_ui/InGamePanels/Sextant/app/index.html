@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<!--
+  L'INTERFACE EST EN ANGLAIS, les commentaires restent en francais.
+  Les termes suivent ceux de l'application de bureau (desk/src/renderer/i18n.js,
+  bloc EN) : Sights, Mid-time, Hs, Ho, Zn, Intercept, Index error, Calibration.
+  « Consigne » y est rendu par « order » — c'est donc « Order » ici aussi.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bubble sextant</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <!--
+      Disposition calquee sur le MS 28011 (Kollsman periscopique), d'apres
+      l'inventaire des commandes de l'AFM 51-40 : oculaire, fenetre de hauteur
+      en degres et minutes, cadrans d'integrateur juste au-dessus, molette de
+      hauteur, couronne d'azimut, roue de filtres a huit valeurs, reglage de
+      bulle, bouton d'integrateur.
+
+      Aucune image : tout est en degrades. Les photographies viendront plus
+      tard, par-dessus, sans toucher a cette structure.
+    -->
+    <div class="instrument">
+      <!--
+        PLUS DE BANDEAU EN HAUT. L'horloge et l'attente de la table sont
+        descendues sous le poussoir, a la fin de ce fichier.
+
+        Deux raisons. Le cadre du panneau est maintenant transparent : une bande
+        de titre posee au-dessus de l'instrument aurait flotte sur le decor du
+        simulateur au lieu d'appartenir a l'appareil. Et la barre de titre de
+        MSFS, invisible mais toujours vivante, occupe cette meme bande — deux
+        choses au meme endroit, dont une qui ne se voit pas.
+
+        La mention « MSFS » n'est pas descendue, elle a disparu : le panneau est
+        une iframe DANS le simulateur, on ne peut pas y etre et en avoir perdu
+        le lien. L'avion fictif de `sim.js` sert a developper au navigateur.
+      -->
+      <!-- L'oculaire. C'est l'instrument : il prend la place. -->
+      <div class="scope">
+        <canvas id="field"></canvas>
+      </div>
+
+      <!-- Les fenetres de lecture, gravees et encastrees. -->
+      <div class="counters">
+        <div class="counter">
+          <span class="lbl">Altitude</span>
+          <div class="window" id="drumRead"></div>
+        </div>
+        <div class="counter narrow">
+          <span class="lbl">Mid-time</span>
+          <div class="window mini" id="shotTime"></div>
+        </div>
+      </div>
+
+      <!-- Les commandes. Molettes que l'on roule, pas de curseurs. -->
+      <div class="deck">
+        <div class="ctl">
+          <span class="lbl">Drum</span>
+          <canvas class="drum" id="drumKnob" tabindex="0"
+                  title="Roll to change altitude — 1 turn = 30°"></canvas>
+        </div>
+        <div class="ctl">
+          <span class="lbl">Fine</span>
+          <canvas class="drum" id="fineKnob" tabindex="0"
+                  title="Fine adjustment — 1 turn = 1°, graduated in arcminutes"></canvas>
+        </div>
+      </div>
+
+      <div class="deck">
+        <div class="ctl wide">
+          <span class="lbl">Azimuth</span>
+          <canvas class="drum horiz" id="bearingKnob" tabindex="0"
+                  title="True azimuth ring — 1 turn = 360°"></canvas>
+          <canvas class="drum horiz" id="bearingFine" tabindex="0"
+                  title="Fine crank — 1 turn = 5°, D-1 mount"></canvas>
+          <!-- Deux reperes pour une seule ligne de visee. Zn est celui de la
+               couronne, sur lequel l'instrument est cale ; Gis est le gisement
+               depuis le nez de l'appareil, c'est-a-dire ce que le navigateur
+               lit dans ses tables pour savoir de quel cote chercher l'astre
+               (MA-2 §3-21.a, « approximate relative bearing »). -->
+          <div class="window mini bearingWin">
+            <span class="sub">Zn</span><span id="bearingRead"></span>
+            <span class="sub">RB</span><span id="bearingRel"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="deck">
+        <div class="ctl">
+          <span class="lbl">Filter</span>
+          <div class="wheel" id="filterWheel" title="Eight-position wheel"></div>
+          <div class="window mini wideWin" id="filterRead"></div>
+        </div>
+        <div class="ctl">
+          <span class="lbl">Bubble</span>
+          <canvas class="drum small" id="bubbleKnob" tabindex="0"
+                  title="Bubble size — 1 turn = 1° of diameter"></canvas>
+        </div>
+      </div>
+
+      <div class="deck">
+        <div class="ctl">
+          <span class="lbl">Magnification</span>
+          <canvas id="magButton" class="plate sel" tabindex="0"
+                  title="Wide field to search, narrow field to collimate"></canvas>
+        </div>
+      </div>
+
+      <!--
+        Le poussoir. C'est le seul organe du panneau qui declenche quelque
+        chose : il a droit a sa lampe, qui reste allumee tant que l'integration
+        court.
+      -->
+      <div class="deck">
+        <div class="ctl">
+          <canvas id="shoot" class="plate shoot" tabindex="0"
+                  title="Start or stop the averager"></canvas>
+        </div>
+      </div>
+      <p class="hint" id="shotState"></p>
+
+      <!--
+        La consigne. C'est le papier que le navigateur passe a l'observateur :
+        quel astre, ou le chercher. Elle vient de la table par le pont et ne se
+        rafraichit pas toute seule — comme un vrai papier, elle vieillit pendant
+        que l'appareil tourne, et c'est au navigateur d'en repasser une.
+
+        ELLE EST EN BAS, entre le poussoir et l'heure. C'est sa place : on la
+        lit AVANT de chercher l'astre et AVANT de declencher, pas pendant qu'on
+        est a l'oculaire. En haut, elle separait le titre de la lunette sans que
+        rien ne la reclame la.
+      -->
+      <div class="consigne" id="consigne">
+        <span class="consigne-lbl">Order</span>
+        <span class="consigne-val" id="consigneVal">—</span>
+      </div>
+
+      <!--
+        LE PIED DE L'INSTRUMENT : l'heure, et l'attente de la table.
+
+        L'HEURE reste, et elle est la seule chose que la barre du haut portait
+        qui ait une fonction AU MOMENT DU GESTE. L'AFM demande de commencer la
+        visee une minute avant l'heure ronde, pour que l'integration soit
+        centree sur l'instant precalcule — cela demande une montre sous les
+        yeux pendant qu'on est a l'oculaire, et l'application est derriere le
+        simulateur a cet instant-la. Elle est donc sous le poussoir, contre le
+        geste qu'elle sert.
+
+        L'ATTENTE ne s'affiche que s'il y a quelque chose a attendre. « TABLE »
+        seul ne disait rien que l'application ne dise mieux ; c'est le COMPTE de
+        visees non transmises qui compte, parce que sans lui on peut enchainer
+        six visees derriere un pont tombe et ne s'en apercevoir qu'a la table.
+      -->
+      <div class="pied">
+        <span class="clock" id="clock">--:--:--</span>
+        <span class="src" id="link" title="Sights awaiting acknowledgement" hidden></span>
+      </div>
+
+      <!--
+        Et c'est tout. Le panneau EST l'instrument, rien de plus : horloge,
+        champ, compteurs, molettes, filtre, grossissement, poussoir.
+        Le choix de l'astre, l'etalonnage, l'estime, le carnet et le point sont
+        partis a la table du navigateur — l'application Electron. C'est la
+        division historique : le sextant sous l'astrodome, la planchette a la
+        station de nav. Le pont est pose : WebSocket sur 127.0.0.1, la consigne
+        descend, les visees remontent, et le panneau reste le seul a toucher au
+        simulateur.
+      -->
+    </div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

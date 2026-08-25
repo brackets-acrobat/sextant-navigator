@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>ICON_TOOLBAR_SEXTANT</title>
+  <!--
+    Pas de width ni de height : c'est la feuille de style de la barre d'outils
+    qui dimensionne, et un attribut fige y entrerait en conflit. Le groupe
+    HIGHLIGHT est la convention des icones du simulateur — c'est lui que le jeu
+    teinte au survol et a l'ouverture du panneau.
+  -->
+  <g id="HIGHLIGHT" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Le limbe : l'arc gradue, signature de tout sextant. -->
+    <path d="M 18 76 A 45 45 0 0 1 82 76" />
+    <!-- Les deux branches et l'alidade. -->
+    <path d="M 18 76 L 50 20 L 82 76 Z" />
+    <path d="M 50 20 L 34 76" />
+    <!-- Graduations du limbe. -->
+    <path d="M 27 66 l -5 6 M 41 59 l -3 7 M 59 59 l 3 7 M 73 66 l 5 6" stroke-width="4" />
+    <!-- La bulle, ce qui distingue le sextant aeronautique du sextant marin. -->
+    <circle cx="50" cy="58" r="8" stroke-width="4" />
+    <circle cx="50" cy="58" r="2.5" fill="#FFFFFF" stroke="none" />
+  </g>
+</svg>

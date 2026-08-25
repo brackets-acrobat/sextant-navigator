@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<SimBase.Document Type="InGamePanels" version="1,0">
+  <Filename>InGamePanel_Sextant.spb</Filename>
+  <InGamePanels.InGamePanelDefinition
+      id="PANEL_SEXTANT"
+      Name="Sextant"
+      url="html_ui/InGamePanels/Sextant/Sextant.html"
+      resizeDirections="Both"
+      minWidth="40"
+      minHeight="48"
+      defaultWidth="45"
+      defaultHeight="72"
+      defaultTop="10"
+      defaultRight="2"
+      icon="ICON_TOOLBAR_SEXTANT"
+      buttonVisible="true">
+  </InGamePanels.InGamePanelDefinition>
+</SimBase.Document>
