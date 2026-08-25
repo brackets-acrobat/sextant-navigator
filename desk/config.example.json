@@ -1,0 +1,9 @@
+{
+  "_comment": "Copie ce fichier en config.json pour changer l'emplacement du dossier de travail. config.json est gitignoré.",
+
+  "dossierTravail": "",
+  "_dossierTravail_comment": "Où ranger data/, elevation/ et settings.json. Vide = sous-dossier « Sextant Navigator » dans Mes documents.",
+
+  "pontPort": 8787,
+  "_pontPort_comment": "Port du pont avec le panneau du sextant, sur 127.0.0.1 uniquement. À changer seulement si un autre logiciel occupe déjà 8787 — et alors il faut le changer AUSSI côté panneau, dans html_ui/InGamePanels/Sextant/app/pont.js (PONT_PORT)."
+}

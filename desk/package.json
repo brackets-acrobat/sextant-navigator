@@ -1,0 +1,99 @@
+{
+  "name": "sextant-navigator",
+  "version": "0.1.0",
+  "description": "Sextant Navigator — catalogue d'astres, report des droites de hauteur et point astronomique, pour le sextant a bulle de Microsoft Flight Simulator 2024",
+  "main": "src/main/main.js",
+  "author": "Cyril MILANI",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "force-electron": "node force-electron.js",
+    "dist": "electron-builder",
+    "publish": "electron-builder --publish always"
+  },
+  "keywords": [
+    "electron",
+    "msfs",
+    "simconnect",
+    "vfr",
+    "flight-planning"
+  ],
+  "dependencies": {
+    "electron-updater": "^6.3.9",
+    "extract-zip": "^2.0.1",
+    "geomagnetism": "^0.2.0",
+    "node-simconnect": "^4.2.0"
+  },
+  "devDependencies": {
+    "electron": "^30.5.1",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "me.sixk.sextantnavigator",
+    "productName": "Sextant Navigator",
+    "copyright": "Copyright © 2026 Cyril MILANI — GPL-3.0-or-later",
+    "artifactName": "Sextant-Navigator-Setup-${version}.${ext}",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "!outils/**",
+      "!design/**",
+      "!force-electron.js",
+      "!dist/**",
+      "!config.json",
+      "!config.example.json",
+      "!**/*.log",
+      "!README.md",
+      "!test/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../src",
+        "to": "noyau",
+        "filter": [
+          "**/*.js"
+        ]
+      },
+      {
+        "from": "build/noyau-package.json",
+        "to": "noyau/package.json"
+      }
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/node-simconnect/**",
+      "**/node_modules/regedit/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Sextant Navigator",
+      "uninstallDisplayName": "Sextant Navigator ${version}",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "brackets-acrobat",
+      "repo": "sextant-navigator"
+    }
+  }
+}

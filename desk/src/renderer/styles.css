@@ -1,0 +1,1594 @@
+/*
+ * Sextant Navigator
+ *
+ * Charte graphique de Sextant Navigator : barre ardoise, boutons pleins bleus,
+ * panneaux clairs, texte ardoise.
+ *
+ * Les noms de variables historiques (--bg, --panel, --ink…) sont conservés : ils
+ * sont employés partout dans ce fichier, et les renommer serait une refonte, pas
+ * un changement de couleur.
+ */
+
+:root {
+  /* --- Palette --- */
+  --ardoise:      #1f2933;   /* barre, entêtes de table et de modale */
+  --ardoise-line: #3e4c59;   /* filets sur fond ardoise */
+  --bleu:         #2563eb;   /* action principale */
+  --bleu-h:       #1d4ed8;
+  --gris:         #64748b;   /* action secondaire */
+  --gris-h:       #475569;
+  --violet:       #7c3aed;   /* clé d'accès */
+  --violet-h:     #6d28d9;
+  --vert:         #059669;   /* bascule de langue, état favorable */
+  --vert-h:       #047857;
+  --rouge:        #e11900;   /* action destructrice */
+  --rouge-h:      #b91500;
+  --ambre:        #f59e0b;   /* accent secondaire (alertes, mises en évidence) */
+  --jaune:        #facc15;   /* lecture en direct sur l'ardoise (vitesse sol) */
+  --sep:          #e2e8f0;   /* séparateur à l'intérieur d'un panneau */
+  --bande:        #eef2f7;   /* bandeaux secondaires, champs */
+  --off-bg:       #cbd5e1;   /* bouton inactif */
+  --off-ink:      #94a3b8;
+
+  /* --- Noms historiques, remappés sur la palette ci-dessus --- */
+  --bg:           #f8fafc;
+  --panel:        #ffffff;   /* panneaux flottants et modales */
+  --panel-2:      var(--bande);
+  --accent:       var(--bleu);
+  --accent-hover: var(--bleu-h);
+  --ink:          #1f2933;
+  --title:        #1f2933;
+  --muted:        var(--gris);
+  --line:         #cbd5e1;
+  --danger:       var(--rouge);
+  --warn:         #b45309;
+  --mono:         'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  /* Plein écran en colonnes : header · subbar · carte (extensible) */
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+h1, h2, h3 { color: var(--title); }
+
+/* ---- Icônes Phosphor (vertes par défaut, alignées au texte) — comme le site ---- */
+i[class^="ph-"], i[class*=" ph-"] {
+  color: var(--accent);
+  vertical-align: middle;
+  line-height: 1;
+}
+/* Dans un bouton plein, l'icône suit la couleur du texte. */
+.btn i[class^="ph-"] { color: inherit; }
+
+/* Ascenseurs discrets */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--bande); border-left: 1px solid var(--line); }
+*::-webkit-scrollbar-thumb { background: var(--off-bg); border-radius: 6px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* --- Barre supérieure (= #toolbar de l'appli Tours) --- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  flex-wrap: wrap;
+  /* Repère de positionnement du bloc chronomètres, centré sur la BARRE et non
+     sur la place qui reste entre les deux groupes (voir .chrono-bar). */
+  position: relative;
+  padding: .75rem 1.25rem;
+  /* Ardoise, comme la barre d'outils de Tours. Tout ce qu'elle porte passe donc
+     en clair : un bouton plein s'y voit, un bouton à contour non. */
+  background: var(--ardoise);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, .25);
+  z-index: 1000;
+}
+.topbar i[class^="ph-"], .topbar i[class*=" ph-"] { color: #fff; }
+/* Les deux groupes ont échangé leur contenu (compte et simulateur à gauche,
+   panneaux et imports à droite). Les écarts suivent le contenu et non le
+   conteneur : chaque bouton garde exactement l'espacement qu'il avait. */
+.brand { display: flex; align-items: center; gap: 10px; }
+/* Hauteur BORNÉE : elle fixe celle de la barre supérieure, et la largeur suit
+   d'elle-même pour garder les proportions de l'image. Les 2 px rendent au logo
+   les 12 px qui le séparaient du premier bouton. */
+/* La banniere est desormais une PHOTO opaque, plus un detourage sur fond
+   transparent : sans coins arrondis, son rectangle noir tranchait net dans la
+   barre. Le retrait vertical lui laisse respirer au lieu de toucher les bords. */
+.brand-logo {
+  display: block;
+  height: 92px;
+  width: auto;
+  margin: 4px 6px 4px 0;
+  border-radius: 6px;
+}
+
+.conn { display: flex; align-items: center; gap: 12px; }
+
+/* Sélecteurs doublés (.btn.btn-state-*) : à spécificité égale, c'est l'ordre
+   dans le fichier qui tranche, et .btn est déclaré plus bas — il écraserait ces
+   couleurs d'état. */
+.btn.btn-state-off  { background: var(--rouge); color: #fff; }
+.btn.btn-state-off:hover,  .btn.btn-state-off:focus-visible  { background: var(--rouge-h); }
+.btn.btn-state-wait { background: var(--warn); color: #fff; }
+.btn.btn-state-wait:hover, .btn.btn-state-wait:focus-visible { background: #92400e; }
+.btn.btn-state-on   { background: var(--vert); color: #fff; }
+.btn.btn-state-on:hover,   .btn.btn-state-on:focus-visible   { background: var(--vert-h); }
+
+/* HORS DU FLUX, centré sur la barre. Les deux groupes qui l'encadrent n'ont pas
+   la même largeur (à peu près 695 px à gauche contre 292 à droite) : laissé dans
+   le flux avec space-between, le bloc se poserait à mi-chemin entre eux, donc
+   visiblement décalé vers la droite. */
+/* Deux rangées : les compteurs, puis la vitesse sol. Le bloc étant hors du flux
+   et centré sur lui-même, la seconde rangée ne pousse rien — elle s'ajoute de
+   part et d'autre du centre. La barre fait 100 px de haut (le logo la borne),
+   les deux rangées en occupent une soixantaine : rien ne déborde. */
+.chrono-bar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.chrono-row { display: flex; align-items: center; gap: 18px; }
+
+/* Vitesse sol en direct. Chasse fixe et largeur minimale : le nombre ne fait pas
+   danser le bloc quand il passe de deux à trois chiffres. */
+/* Fenêtre étroite : la place au centre ne suffit plus et le bloc absolu passerait
+   PAR-DESSUS les boutons. On le rend au flux, où il se range entre les deux
+   groupes et sait passer à la ligne. Le seuil vient du calcul ci-dessus :
+   695 (gauche) + 395 (le bloc) + 292 (droite) ≈ 1380 px, plus de quoi respirer.
+   Les 395 px sont mesurés sur le contenu : deux icônes de 20, les compteurs à 74
+   et 104, quatre boutons de 28, et les écarts. */
+@media (max-width: 1500px) {
+  .chrono-bar { position: static; left: auto; top: auto; transform: none; }
+}
+
+.chrono-item { display: flex; align-items: center; gap: 7px; }
+
+/* L'icône tient le rôle du libellé « CHRONOMÈTRE » / « TIMER » de NavXpressVFR :
+   sablier pour le temps de vol, chronomètre pour l'autre. Son infobulle donne le
+   mot, dans la langue courante. */
+.chrono-icone { font-size: 20px; opacity: .85; cursor: default; }
+
+/* Le compteur, en chasse fixe et en boîte creusée dans l'ardoise : les chiffres
+   ne dansent pas d'une seconde à l'autre, et la boîte le détache de la barre.
+   Largeur fixée par le format, pour que MM:SS et HH:MM:SS ne se déforment pas
+   quand un chiffre change. */
+.chrono-display {
+  min-width: 74px;
+  padding: 3px 8px;
+  border: 1px solid var(--ardoise-line);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, .25);
+  color: var(--sep);
+  font-family: var(--mono);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+#timer-display { min-width: 104px; }   
+/* En marche, le compteur passe au vert — l'état se lit sur le nombre lui-même,
+   sans qu'on ait à interpréter l'icône du bouton. Vert clair et non var(--vert)
+   (#059669) : celui-là est fait pour porter du texte blanc sur un bouton, il est
+   trop sombre pour être LU sur l'ardoise. */
+.chrono-display.est-en-marche { color: #34d399; }
+
+.chrono-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--ardoise-line);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .08);
+  cursor: pointer;
+  line-height: 1;
+  transition: background-color .15s, border-color .15s;
+}
+.chrono-btn i[class^="ph-"] { font-size: 15px; }
+.chrono-btn:hover,
+.chrono-btn:focus-visible { background: rgba(255, 255, 255, .18); border-color: #5a6b7b; outline: none; }
+.chrono-btn:active { transform: scale(.94); }
+.chrono-btn:disabled { opacity: .35; cursor: not-allowed; }
+.chrono-btn:disabled:hover { background: rgba(255, 255, 255, .08); border-color: var(--ardoise-line); }
+
+/* ▶ en vert : c'est le départ. ❙❙ reste blanc — l'ambre de la charte est réservé
+   aux mises en garde, l'emprunter ici brouillerait ce sens.
+   Le préfixe .topbar n'est pas décoratif : sans lui, la règle qui met TOUTES les
+   icônes de la barre en blanc (ligne 98) est plus spécifique que celle-ci — un
+   attribut y pèse plus que la classe qui manque — et le vert ne prendrait pas. */
+.topbar .chrono-btn-toggle .ph-play { color: #34d399; }
+
+/* --- Toggle bilingue FR | EN (pilule, façon NavXpress, accent vert) --- */
+.btn-lang {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--vert);
+  border: 1px solid var(--vert);
+  border-radius: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, .75);
+  letter-spacing: .5px;
+  user-select: none;
+  transition: border-color .2s, background-color .2s;
+}
+.btn-lang:hover { background-color: var(--vert-h); border-color: var(--vert-h); }
+.lang-separator { color: rgba(255, 255, 255, .5); }
+.lang-active { color: #fff; }
+
+/* Bouton PLEIN : c'est la forme de Tours, et la seule lisible à la fois sur la
+   barre ardoise et sur un panneau clair. */
+.btn {
+  display: inline-block;
+  padding: .5rem 1.1rem;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--bleu);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+.btn:hover,
+.btn:focus-visible { background: var(--bleu-h); outline: none; }
+.btn:hover i[class^="ph-"] { color: #fff; }
+.btn-accent { background: var(--bleu); color: #fff; }
+.btn-accent:hover { background: var(--bleu-h); }
+
+/* Bouton-icône secondaire (import, à propos, panneaux) : gris ardoise. */
+.btn-icon { background: var(--gris); }
+.btn-icon:hover { background: var(--gris-h); }
+
+/* La clé d'accès prend le violet de Tours. */
+#btn-api-key { background: var(--violet); }
+#btn-api-key:hover { background: var(--violet-h); }
+
+/* La recherche garde le bleu d'action principale malgré .btn-icon, dont elle ne
+   prend que la géométrie (carré, icône 20px). Le gris de .btn-icon désigne les
+   commandes secondaires — imports, bascules de panneau ; chercher un terrain
+   n'en est pas une. Même procédé que la clé d'accès ci-dessus : un sélecteur
+   d'ID, qui l'emporte sur la classe quel que soit l'ordre des règles. */
+#btn-recherche { background: var(--bleu); }
+#btn-recherche:hover,
+#btn-recherche:focus-visible { background: var(--bleu-h); }
+
+/* Groupe VERT du plan : inversion du plan et rose des vents. Détaché des autres
+   boutons-icônes par 50 px pris à droite du second — le gap de 12 px de .conn
+   court toujours entre les deux, seul l'intervalle qui les sépare du profil
+   vertical s'ouvre. Même procédé de sélecteur d'ID que la clé d'accès et la
+   recherche ci-dessus.
+   Le vert est TENU : survol, focus, appui et bascule active repeignent la même
+   couleur. Conséquence assumée — la rose ne signale plus par sa couleur qu'elle
+   est affichée ; seul aria-pressed en garde la trace. */
+#btn-inverser,
+#btn-inverser:hover, #btn-inverser:focus-visible, #btn-inverser:active,
+#btn-compas,
+#btn-compas:hover, #btn-compas:focus-visible, #btn-compas:active,
+#btn-compas.is-active { background: var(--vert); color: #fff; }
+#btn-compas { margin-right: 50px; }
+
+/* Bouton-icône (import) : carré, icône 20px */
+.btn-icon { padding: .45rem .6rem; line-height: 0; }
+.btn-icon i[class^="ph-"] { font-size: 20px; }
+
+/* Menu déroulant d'import (aéroports / navaids) */
+.import-menu { position: relative; display: inline-flex; }
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  /* Ancré à DROITE : le bouton « Importer » est désormais à l'extrémité droite
+     de la barre. Aligné à gauche, le menu déborderait de la fenêtre. */
+  right: 0;
+  z-index: 1100;
+  min-width: 200px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .18);
+}
+.dropdown[hidden] { display: none; }   /* l'attribut hidden doit l'emporter sur display:flex */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: .5rem .7rem;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dropdown-item:hover,
+.dropdown-item:focus-visible {
+  background: var(--accent);
+  color: #fff;
+  outline: none;
+}
+
+/* --- Second bandeau : données live (lat / lon / altitude AMSL) --- */
+.subbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 28px;
+  padding: 8px 1.25rem;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+}
+.subbar-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.subbar-item i[class^="ph-"] { font-size: 1.05em; }
+.subval {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+}
+
+/* Champs ICAO départ / arrivée (plan) dans le second bandeau */
+.subbar-field {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.subbar-flabel {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.icao-input {
+  width: 70px;
+  padding: 2px 6px;
+  font-family: var(--mono);
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  outline: none;
+}
+.icao-input:focus { border-color: var(--accent); }
+.icao-input::placeholder { color: var(--muted); letter-spacing: 2px; }
+
+/* Boutons « Ouvrir / Sauvegarder le plan de vol » — tout à droite du bandeau */
+.subbar-actions {
+  margin-left: auto;        /* pousse le groupe complètement à droite */
+  align-self: center;
+  display: inline-flex;
+  gap: 6px;
+}
+.subbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 7px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  cursor: pointer;
+}
+.subbar-btn:hover { border-color: var(--accent); background: var(--panel); }
+.subbar-btn i[class^="ph-"] { font-size: 18px; }
+.subbar-btn:disabled { opacity: .4; cursor: default; }
+.subbar-btn:disabled:hover { border-color: var(--line); background: transparent; }
+
+/* Menu contextuel (clic droit sur la carte) */
+.map-ctx-menu {
+  position: fixed;
+  z-index: 1200;
+  min-width: 210px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .18);
+}
+.map-ctx-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: .4rem .6rem;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.map-ctx-item:hover { background: var(--panel-2); color: var(--accent); }
+
+/* Message bref sur la carte (attente du SIA ou de la FFPLUM, document absent…).
+   pointer-events:none → n'intercepte jamais un clic sur la carte. */
+.doc-toast {
+  position: fixed;
+  z-index: 1300;
+  left: 50%;
+  bottom: 34px;
+  transform: translateX(-50%);
+  max-width: 70vw;
+  padding: .5rem .9rem;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .18);
+  color: var(--ink);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+/* Étiquette de leg (cap magnétique + distance) au milieu du segment de route.
+   pointer-events:none → ne bloque pas le clic-glisser de création de point. */
+.leg-badge-wrap { pointer-events: none; }
+.leg-badge {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 2px 5px;
+  background: #ff0000;
+  border: 1px solid #ffffff;
+  color: #ffffff;
+  font: 11px/13px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  white-space: nowrap;
+  text-align: center;
+  transform-origin: center center;
+  pointer-events: none;
+}
+
+/* --- Contenu : la carte occupe tout l'espace restant --- */
+main { flex: 1; min-height: 0; padding: 0; position: relative; }
+#map { width: 100%; height: 100%; background: #e8edf2; }   
+/* --- Bouton toggle du plan de vol : accentué quand le panneau est ouvert --- */
+#btn-legs.is-active { background: var(--bleu); color: #fff; }
+#btn-legs.is-active i[class^="ph-"] { color: #fff; }
+
+/* --- Panneau « Plan de vol » : bande droite de la carte, pleine hauteur ---
+   La largeur est tenue par une variable pour que les décalages qui la suivent
+   (contrôles Leaflet, profil vertical) ne puissent pas en diverger : le plan
+   de vol porte neuf colonnes et des noms de points jusqu'à 50 caractères. */
+:root {
+  --legs-w: max(46%, 820px);         /* panneau « Plan de vol » */
+}
+.legs-panel {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: var(--legs-w);
+  z-index: 900;                 /* au-dessus des tuiles/marqueurs, sous les contrôles Leaflet (1000) */
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, .97);
+  border-left: 1px solid var(--accent);
+  box-shadow: -6px 0 20px rgba(15, 23, 42, .18);
+}
+.legs-panel[hidden] { display: none; }
+
+/* Panneau ouvert : décale les contrôles carte (haut-droite) juste à gauche du
+   panneau pour les garder cliquables. */
+main.legs-open .leaflet-top.leaflet-right { right: var(--legs-w); transition: right .15s ease; }
+.leaflet-top.leaflet-right { transition: right .15s ease; }
+.legs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.legs-title { display: inline-flex; align-items: center; gap: 6px; color: var(--title); font-weight: 700; font-size: 14px; }
+.legs-total { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.legs-total-num { color: var(--accent); font-family: var(--mono); font-weight: 700; }
+.legs-close {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 2px 5px; background: transparent; border: 1px solid var(--line);
+  border-radius: 5px; cursor: pointer;
+}
+.legs-close:hover { border-color: var(--accent); background: var(--panel-2); }
+.legs-close i[class^="ph-"] { font-size: 16px; }
+
+/* Bandeau des paramètres de navigation (vitesse propre + vent prévu), entre
+   l'en-tête et le tableau : c'est de là que sortent les temps par branche. */
+.legs-nav {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--muted); font-size: 12px;
+}
+.legs-nav-lbl { color: var(--title); font-weight: 600; }
+.legs-nav-in {
+  width: 42px; box-sizing: border-box;
+  padding: 2px 4px; text-align: right;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+  color: var(--title); font-family: var(--mono); font-size: 12px;
+}
+.legs-nav-in:focus { outline: none; border-color: var(--accent); }
+.legs-nav-sep { color: var(--line); }
+/* Cases verrouillées : le simulateur les alimente, la frappe n'y ferait rien. */
+.legs-nav-in[readonly] { background: var(--bande); color: var(--muted); cursor: not-allowed; }
+/* Neuf colonnes : le tableau peut déborder en largeur si la fenêtre est
+   étroite ou un nom de point très long (les cellules sont en nowrap) — on le
+   laisse alors défiler plutôt que tronquer. */
+.legs-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: auto; }
+/* Le N° de leg n'a pas la couleur d'accent des valeurs : c'est un repère. */
+.legs-table td.legs-idx { color: var(--muted); font-weight: 700; }
+/* Les colonnes chiffrées gardent leur largeur (nowrap hérité de td) ; ce sont
+   les NOMS qui cèdent. Un point tournant peut porter 50 caractères : plutôt
+   que de le tronquer ou de pousser tout le tableau hors du panneau, on le
+   laisse passer à la ligne. Rien n'est jamais coupé. */
+.legs-table td.legs-name { white-space: normal; overflow-wrap: anywhere; min-width: 9ch; }
+.legs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.legs-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  padding: 6px 8px; text-align: left;
+  background: var(--panel-2); color: var(--muted);
+  font-weight: 600; border-bottom: 1px solid var(--line);
+}
+.legs-table th.legs-num, .legs-table td.legs-num { text-align: right; font-family: var(--mono); }
+.legs-table td {
+  padding: 6px 8px; color: var(--ink);
+  border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+.legs-table td.legs-num { color: var(--accent); }
+.legs-table tbody tr:hover td { background: var(--bande); }
+
+/* État du leg dans le tableau (aligné sur les couleurs carte) :
+   actif = surbrillance rouge, déjà parcouru = grisé, à venir = normal. */
+.legs-table tr.leg-row-active td { background: #fde68a; }   /* étape en cours, comme dans Tours */
+.legs-table tr.leg-row-active td.legs-name { color: #7c2d12; font-weight: 700; }
+.legs-table tr.leg-row-past td,
+.legs-table tr.leg-row-past td.legs-num,
+.legs-table tr.leg-row-past td.legs-name { color: var(--muted); opacity: .6; }
+
+/* Cellules éditables (nom de point tournant, altitude de leg) : double-clic */
+.legs-table td.is-editable { cursor: text; }
+.legs-table td.is-editable:hover { color: var(--accent); text-decoration: underline dotted; text-underline-offset: 2px; }
+.legs-cell-input {
+  width: 100%; box-sizing: border-box;
+  padding: 1px 3px; background: var(--panel-2);
+  border: 1px solid var(--accent); border-radius: 3px;
+  color: var(--title); font: inherit;
+}
+.legs-cell-input:focus { outline: none; }
+
+.legs-empty { padding: 16px 12px; color: var(--muted); font-size: 13px; }
+.legs-empty[hidden] { display: none; }
+
+/* --- Panneau « Catalogue d'astres » : bande GAUCHE de la carte ---------------
+   À gauche, pour qu'il puisse rester ouvert en même temps que le plan de vol.
+   Il reprend la carrosserie du panneau des legs (.legs-head, .legs-nav,
+   .legs-scroll, .legs-table) : même objet, même habillage, et une seule feuille
+   à retoucher le jour où l'un des deux change. */
+:root {
+  /* Neuf colonnes depuis l'ajout de la vitesse verticale. */
+  --astres-w: max(32%, 700px);
+}
+#btn-astres.is-active { background: var(--bleu); color: #fff; }
+#btn-astres.is-active i[class^="ph-"] { color: #fff; }
+
+.astres-panel {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: var(--astres-w);
+  /* AU-DESSUS des contrôles Leaflet (1000), là où le panneau du plan de vol
+     reste dessous (900). Ce n'est pas une incohérence : le plan de vol borde la
+     droite, où il n'y a que l'attribution ; ce panneau borde la gauche, et
+     l'échelle triple km/mi/NM y est posée en bas (cf. carte.js, bottomleft).
+     Elle ne se décale pas comme le zoom : une échelle poussée à côté de la
+     carte ne veut plus rien dire, et elle ne se clique pas. Elle passe donc
+     SOUS le panneau, et réapparaît intacte à sa fermeture. Le zoom, lui, garde
+     son décalage juste en dessous — lui doit rester cliquable. */
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, .97);
+  border-right: 1px solid var(--accent);
+  box-shadow: 6px 0 20px rgba(15, 23, 42, .18);
+}
+.astres-panel[hidden] { display: none; }
+/* Zoom et échelle Leaflet (haut-gauche) poussés à droite du panneau. */
+main.astres-open .leaflet-top.leaflet-left { left: var(--astres-w); transition: left .15s ease; }
+.leaflet-top.leaflet-left { transition: left .15s ease; }
+
+/* Bandeaux de saisie : instant / lieu, puis domaine de visée. */
+.astres-in-utc { width: 148px; text-align: left; }
+.astres-in-pos { width: 68px; }
+.astres-src .astres-mini-btn { margin-right: 2px; }
+
+/* État du ciel. C'est une phrase, pas un tableau de bord : la hauteur du
+   Soleil ne dit rien à qui ne connaît pas les crépuscules, donc elle est
+   toujours accompagnée de ce qu'elle signifie. */
+.astres-ciel {
+  margin: 0;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted); font-size: 12px;
+}
+.astres-alerte { color: var(--warn); font-weight: 600; }
+
+/* Le meilleur jeu, et la sélection en cours : deux bandeaux de même facture,
+   l'un proposé par le calcul, l'autre construit par l'utilisateur. */
+.astres-best, .astres-sel {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.astres-best { background: var(--panel-2); }
+.astres-sel { background: #f0f7ff; }
+.astres-sel[hidden] { display: none; }
+.astres-best-lbl { color: var(--title); font-weight: 600; }
+.astres-best-noms, .astres-sel-noms { color: var(--title); }
+.astres-sel-n { color: var(--title); font-weight: 600; }
+.astres-best-chiffres { color: var(--accent); font-family: var(--mono); }
+.astres-sel-ideal, .astres-best-vide, .astres-sel-un { color: var(--muted); }
+
+/* Verdict : quatre états, quatre couleurs, et jamais du texte seul — c'est ce
+   qu'on lit en premier et parfois la seule chose qu'on lise. */
+.astres-verdict {
+  padding: 1px 7px; border-radius: 999px;
+  color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .3px;
+}
+.verdict-excellent { background: var(--vert); }
+.verdict-bon       { background: var(--bleu); }
+.verdict-mediocre  { background: var(--ambre); color: #422006; }
+.verdict-mauvais   { background: var(--rouge); }
+
+.astres-mini-btn {
+  padding: 1px 7px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 5px;
+  color: var(--title); font-size: 11px; font-weight: 600; cursor: pointer;
+}
+.astres-mini-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.astres-mini-btn:disabled { color: var(--off-ink); cursor: not-allowed; }
+
+/* Le tableau. Les colonnes chiffrées héritent de .legs-num (police à chasse
+   fixe, alignée à droite) : des hauteurs et des azimuts se comparent en
+   colonne, pas en lisant chaque nombre. */
+.astres-table th.astres-pick, .astres-table td.astres-pick { width: 26px; padding-right: 0; text-align: center; }
+.astres-table td.astres-pick input { cursor: pointer; }
+.astres-table td.astres-nom { white-space: nowrap; color: var(--title); font-weight: 600; }
+.astres-ico { font-size: 14px; vertical-align: -1px; }
+.astres-bayer { color: var(--muted); font-weight: 400; font-size: 11px; }
+/* LES DEUX COLONNES QUI VONT SUR L'INSTRUMENT — Hc au tambour, Gt à la
+   couronne — forment un bloc teinté, refermé par un filet.
+   Ce n'est pas de la décoration. La couronne d'un sextant périscopique est
+   solidaire de la cellule : elle est graduée en GISEMENT et ignore le nord.
+   Un tableau qui donne Zn et Gt côte à côte sans dire lequel va où fait viser
+   au mauvais azimut, et rien dans la visée ne le trahira ensuite. */
+.astres-table th.astres-instrument, .astres-table td.astres-instrument {
+  background: #f1f5fb;
+}
+.astres-table th.astres-instrument:first-of-type,
+.astres-table td.astres-instrument:first-of-type { border-left: 2px solid var(--bleu); }
+.astres-table tr.astres-row-sel td.astres-instrument { background: #cfe0fb; }
+
+/* Chiffres CENTRÉS dans ce tableau, là où le plan de vol les aligne à droite.
+   Ce ne sont pas les mêmes nombres : on additionne des distances en colonne
+   dans un log de navigation, on COMPARE des angles ici. Toutes les valeurs
+   sont d'ailleurs formatées à largeur fixe — 030°, 05,4°, +10,6 — donc les
+   chiffres restent alignés malgré le centrage. */
+.astres-table th.legs-num, .astres-table td.legs-num { text-align: center; }
+
+/* La vitesse verticale. Ce n'est pas une note : un astre rapide n'est pas
+   mauvais, il demande la manivelle. L'ambre signale « ne pas poser et
+   laisser courir », le vert « celui-ci se laisse viser tranquillement ». */
+.astres-table td.astres-vitesse.vitesse-rapide { color: var(--warn); font-weight: 700; }
+.astres-table td.astres-vitesse.vitesse-lente  { color: var(--vert); }
+
+/* La magnitude n'est pas une mesure de navigation mais un indice de
+   trouvabilité : elle reste en gris pour ne pas se lire comme un angle. */
+.astres-table td.astres-mag { color: var(--muted); }
+.astres-table tr.astres-row-sel td { background: #dbeafe; }
+.astres-table tr.astres-row-sel td.astres-nom { color: #1e3a8a; }
+
+/* La colonne qui décide du point : verte quand le croisement est franc, rouge
+   sous 30° — la limite au-delà de laquelle deux droites ne se coupent plus,
+   elles se frôlent. */
+.astres-table td.astres-coupe { font-weight: 700; }
+.astres-table td.astres-coupe.coupe-bonne    { color: var(--vert); }
+.astres-table td.astres-coupe.coupe-moyenne  { color: var(--warn); }
+.astres-table td.astres-coupe.coupe-mauvaise { color: var(--rouge); }
+
+/* Ce que le domaine a écarté, en pied de tableau. Discret mais toujours là :
+   c'est la réponse permanente à « je vois cet astre et il n'est pas listé ». */
+.astres-ecartes {
+  margin: 0;
+  padding: 6px 10px;
+  border-top: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--muted); font-size: 11px;
+}
+.astres-ecartes[hidden] { display: none; }
+
+/* --- Le pont avec le sextant -------------------------------------------------
+   Bandeau d'état, présent dans le catalogue (d'où l'on envoie la consigne) et
+   dans le carnet (où l'on reçoit les visées). Trois états, trois couleurs :
+   fermé, ouvert mais personne au bout, sextant connecté. */
+.pont-etat {
+  margin: 0;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.pont-ok      { background: #ecfdf5; color: #065f46; }
+.pont-attente { background: var(--panel-2); color: var(--muted); }
+.pont-ko      { background: #fef2f2; color: #991b1b; }
+
+/* Le bouton de consigne, une ligne d'astre sur deux n'en portant qu'un seul :
+   c'est un ordre, pas une sélection, d'où l'avion en papier plutôt qu'une
+   coche. Bleu plein quand l'astre est celui que le sextant a reçu. */
+.astres-table th.astres-envoi, .astres-table td.astres-envoi { width: 30px; padding-left: 0; text-align: center; }
+.astres-envoi-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 1px 5px; background: transparent;
+  border: 1px solid var(--line); border-radius: 5px; cursor: pointer;
+}
+.astres-envoi-btn:hover { border-color: var(--accent); background: var(--panel-2); }
+.astres-envoi-btn i[class^="ph-"] { font-size: 14px; }
+.astres-envoi-btn.is-consigne { background: var(--bleu); border-color: var(--bleu); }
+.astres-envoi-btn.is-consigne i[class^="ph-"] { color: #fff; }
+
+/* --- Panneau « Visées reçues » : bande droite, comme le plan de vol ----------
+   Les deux se disputent la même place et ne peuvent pas être ouverts ensemble
+   (voir visees.js) : ce sont deux tables du même vol, on en consulte une à la
+   fois. Il reprend la carrosserie du plan de vol, à la largeur près — six
+   colonnes courtes contre neuf. */
+:root {
+  --visees-w: max(34%, 640px);
+}
+#btn-visees.is-active { background: var(--bleu); color: #fff; }
+#btn-visees.is-active i[class^="ph-"] { color: #fff; }
+/* Des visées attendent, panneau fermé : le bouton s'ambre. Une visée arrivée
+   et non vue est un travail qui dort. */
+#btn-visees.a-des-visees i[class^="ph-"] { color: var(--ambre); }
+
+.visees-panel {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: var(--visees-w);
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, .97);
+  border-left: 1px solid var(--accent);
+  box-shadow: -6px 0 20px rgba(15, 23, 42, .18);
+}
+.visees-panel[hidden] { display: none; }
+main.visees-open .leaflet-top.leaflet-right { right: var(--visees-w); transition: right .15s ease; }
+main.visees-open .vp-panel { right: var(--visees-w); }
+
+/* --- L'estime : où l'on croit être ------------------------------------------
+   Sur la carte, elle ne doit JAMAIS se confondre avec l'appareil. Cercle en
+   pointillés, croix au centre, aucune orientation : on ne prétend pas savoir
+   dans quel sens on est, seulement où l'on croit être. Le tracé plein magenta
+   appartient à l'avion, le pointillé bleu à la supposition. */
+.estime-rond {
+  width: 22px; height: 22px; box-sizing: border-box;
+  border: 2px dashed var(--bleu); border-radius: 50%;
+  background: rgba(37, 99, 235, .10);
+  position: relative;
+}
+.estime-croix::before, .estime-croix::after {
+  content: ''; position: absolute; background: var(--bleu);
+}
+.estime-croix::before { left: 50%; top: 3px; bottom: 3px; width: 1px; margin-left: -0.5px; }
+.estime-croix::after { top: 50%; left: 3px; right: 3px; height: 1px; margin-top: -0.5px; }
+
+/* --- Le point observé, porté sur la carte ---
+   Le ROND va à ce qu'on a mesuré, le carré-cercle pointillé de l'estime à ce
+   qu'on suppose : c'est la convention de carte, et elle sépare d'un coup d'œil
+   les deux choses que tout le jeu apprend à ne pas confondre. Trait PLEIN,
+   parce qu'un point n'est pas une supposition.
+
+   Vert, et non le bleu de l'estime : sur la carte, la chose dont il faut le
+   distinguer est justement l'estime, et deux bleus voisins ne se distinguent
+   pas. Sur la planchette il est encre bleue — là-bas le voisin est un trait de
+   crayon gris. Même règle, contexte différent. */
+.point-obs-rond {
+  width: 14px; height: 14px; box-sizing: border-box;
+  margin: 2px;
+  border: 2px solid var(--vert); border-radius: 50%;
+  background: rgba(5, 150, 105, .18);
+  position: relative;
+}
+.point-obs-rond::after {
+  content: ''; position: absolute;
+  left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px;
+  background: var(--vert); border-radius: 50%;
+}
+/* L'heure à côté de la marque, comme sur une carte annotée. Elle ne se met pas
+   dessous : là, elle tomberait sur le vecteur de correction une fois sur deux. */
+.point-obs-heure {
+  position: absolute; left: 21px; top: 1px;
+  padding: 0 3px; border-radius: 3px;
+  background: rgba(255, 255, 255, .85);
+  color: #065f46; font-family: var(--mono); font-size: 10px; font-weight: 700;
+  white-space: nowrap;
+}
+
+.estime-bandeau {
+  margin: 0;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--line);
+  background: #eef4ff;
+  color: var(--title); font-size: 12px;
+}
+.estime-absente { background: var(--panel-2); color: var(--muted); }
+/* Une estime d'une demi-heure ne vaut plus grand-chose : l'âge est la seule
+   mesure honnête de ce qu'elle vaut, et il doit se voir. */
+.estime-vieille { background: #fffbeb; color: #92400e; }
+.estime-pos { font-family: var(--mono); font-weight: 700; }
+.estime-nav { font-family: var(--mono); color: var(--accent); }
+.estime-age, .estime-origine { color: var(--muted); }
+
+/* --- Le point observé, en pied de carnet --- */
+.visees-barre { gap: 6px; }
+/* Le pied du panneau : bordure EN HAUT, puisqu'il ferme la colonne au lieu de
+   séparer deux bandes. Rien d'autre ne le distingue de la barre du haut — c'est
+   le même objet, à l'autre bout. */
+.visees-pied {
+  gap: 6px;
+  border-bottom: none;
+  border-top: 1px solid var(--line);
+}
+.visees-point {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  background: #ecfdf5;
+  font-size: 12px;
+}
+.visees-point[hidden] { display: none; }
+.visees-point-lbl { color: var(--title); font-weight: 700; }
+.visees-point-pos { font-family: var(--mono); color: #065f46; }
+/* Le chapeau ne prouve rien, et ça se dit là où il se lit. */
+.visees-avertissement { color: var(--muted); font-size: 11px; flex-basis: 100%; }
+/* Le vent DÉDUIT du point : la seconde moitié de ce qu'une droite de hauteur
+   rapporte, et la plus utile pour la suite du vol. Il occupe sa propre ligne
+   parce qu'il ne se lit pas comme une coordonnée — c'est un résultat de plus,
+   pas une précision sur le point. */
+.visees-vent {
+  flex-basis: 100%;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  padding-top: 4px; border-top: 1px dashed var(--line);
+  font-size: 12px; color: var(--muted);
+}
+.visees-vent-lbl { color: var(--title); font-weight: 700; }
+.visees-vent-val { font-family: var(--mono); color: var(--accent); font-size: 13px; }
+/* Le débriefing : les scellés ouverts. Il tranche sur le reste, parce qu'il
+   dit une chose que le navigateur ne pouvait pas savoir. */
+.visees-debrief {
+  flex-basis: 100%;
+  padding: 4px 8px; border-radius: 5px;
+  background: var(--ardoise); color: var(--sep);
+  font-family: var(--mono); font-size: 11px;
+}
+
+/* --- La planchette de report : la feuille de position ---
+   Elle couvre TOUTE la carte, et referme le carnet et le plan de vol en
+   s'ouvrant. Ce n'est pas de la gourmandise d'espace : la feuille est carrée
+   parce que ses deux axes portent la même échelle en milles, et sur une bande
+   de 460 px elle ne ferait plus que 460 de côté pour des intercepts de trois
+   milles. À l'échelle d'une carte VFR, ces trois milles sont un point. */
+.planchette-panel {
+  position: absolute;
+  inset: 0;
+  /* AU-DESSUS DES CONTRÔLES LEAFLET, qui sont à 1000 : à 950 le bouton de
+     fermeture passait sous les boutons de fonds de carte et de couches, dans le
+     même coin. C'est la convention du catalogue d'astres (1001), et ici elle va
+     de soi — la feuille couvre toute la carte, donc les commandes de la carte
+     n'ont rien à commander tant qu'elle est ouverte. */
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  background: var(--ardoise);
+}
+.planchette-panel[hidden] { display: none; }
+#btn-planchette.is-active { background: var(--bleu); color: #fff; }
+.planchette-panel .legs-head {
+  background: var(--ardoise);
+  border-bottom: 1px solid var(--ardoise-line);
+  color: #fff;
+}
+.planchette-panel .legs-title, .planchette-panel .legs-total { color: #fff; }
+.planchette-panel .legs-close { color: var(--sep); }
+.planchette-panel .legs-close:hover { color: #fff; }
+/* La scène : du feutre de table à cartes, la feuille posée dessus. */
+.planchette-scene {
+  flex: 1; min-height: 0;
+  display: grid; place-items: center;
+  padding: 14px;
+}
+#planchette-feuille { display: block; box-shadow: 0 10px 28px rgba(0, 0, 0, .45); }
+.planchette-vide {
+  margin: 0; max-width: 46ch; text-align: center;
+  color: var(--sep); font-size: 14px; line-height: 1.5;
+}
+.planchette-vide[hidden] { display: none; }
+
+/* --- L'étalonnage, dans le carnet ---
+   Il vit là parce qu'il travaille sur les mêmes visées et que son résultat
+   tombe dans la même case d'erreur d'index, deux lignes plus haut. Une bande
+   ambrée le distingue du point observé, qui est vert : l'un mesure
+   l'instrument, l'autre mesure la position, et on ne les fait pas le même
+   jour. */
+/* Le bouton d'étalonnage est POUSSÉ AU BOUT de la barre, séparé des deux
+   autres. Il ne fait pas partie de la même besogne : « Faire le point » et
+   « Planchette » cherchent où l'on est, l'étalonnage mesure l'instrument, au
+   sol, avant de partir. Collé aux deux autres, il se lisait comme la suite de
+   la manœuvre. */
+.visees-barre .etal-btn { margin-left: auto; }
+
+.etal { border-bottom: 2px solid var(--ambre); background: #fffdf5; }
+.etal[hidden] { display: none; }
+.etal-regle {
+  margin: 0;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  color: #92400e; font-size: 11px; line-height: 1.4;
+}
+.etal-barre {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.etal-barre[hidden] { display: none; }
+.etal-pos { font-family: var(--mono); font-weight: 700; color: var(--title); }
+
+/* Le résultat. C'est le seul endroit de l'application où l'on annonce un
+   nombre que le navigateur va garder : il vient donc avec la méthode qui l'a
+   produit, sa dispersion, et ce qu'il reste d'incertain. */
+.etal-resultat {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  background: #fef3c7;
+  font-size: 12px;
+}
+.etal-resultat[hidden] { display: none; }
+.etal-valeur { font-family: var(--mono); font-size: 15px; color: #78350f; }
+.etal-manque { color: #92400e; }
+/* Le retard de manivelle n'est pas un défaut de l'instrument mais du geste, et
+   c'est la chose la plus utile que ce panneau puisse apprendre. */
+.etal-retard {
+  flex-basis: 100%;
+  padding: 4px 8px; border-radius: 5px;
+  background: var(--ardoise); color: var(--sep);
+  font-family: var(--mono); font-size: 11px;
+}
+.etal-scroll { max-height: 220px; overflow-y: auto; }
+.etal-scroll[hidden] { display: none; }
+.etal-table td.etal-ecart { font-weight: 700; color: var(--accent); }
+/* Une visée trop rapide n'est pas cachée : elle reste lisible, en retrait.
+   Un filtre qui fait disparaître ce qu'il retire est un filtre qu'on soupçonne
+   d'avoir perdu quelque chose — et celle-ci sert encore, c'est elle qui donne
+   le bras de levier du retard. */
+.etal-table tr.etal-hors td { background: #fafafa; color: var(--muted); }
+.etal-table tr.etal-refusee td { opacity: .55; text-decoration: line-through; }
+.etal-table tr.etal-refusee td.visees-sup { text-decoration: none; opacity: 1; }
+.etal-note {
+  margin: 0;
+  padding: 5px 10px;
+  color: var(--title); font-size: 11px;
+}
+.etal-sans-etalon { color: var(--muted); }
+
+/* Les colonnes qui n'existent qu'après la réduction. */
+.visees-table th.visees-reduit, .visees-table td.visees-reduit { background: #f6fbf8; }
+.visees-table td.visees-intercept { font-weight: 700; color: var(--accent); }
+
+/* L'avertissement du haut. Il n'est pas décoratif : confondre un Hs avec un Ho
+   coûte une dizaine de minutes d'arc, soit dix milles sur la carte. */
+.visees-note {
+  margin: 0;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--muted); font-size: 11px;
+}
+.visees-note[hidden] { display: none; }
+/* Chiffres centrés, comme dans le catalogue d'astres : ce sont deux tables du
+   même travail, et elles se lisent l'une après l'autre. Le nom de l'astre reste
+   à gauche dans les deux — c'est un nom, pas une mesure. */
+.visees-table th.legs-num, .visees-table td.legs-num,
+.visees-table th.visees-date, .visees-table td.visees-date { text-align: center; }
+.visees-table td.visees-date { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+/* Intégration courte : la moyenne de la bulle n'a pas eu le temps de faire son
+   office, et la visée vaut moins. */
+.visees-table td.visees-court { color: var(--warn); }
+.visees-table th.visees-sup, .visees-table td.visees-sup { width: 28px; padding-left: 0; text-align: center; }
+.visees-sup-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 1px 4px; background: transparent;
+  border: 1px solid transparent; border-radius: 5px; cursor: pointer;
+}
+.visees-sup-btn:hover { border-color: var(--rouge); }
+.visees-sup-btn:hover i[class^="ph-"] { color: var(--rouge); }
+.visees-sup-btn i[class^="ph-"] { font-size: 14px; color: var(--off-ink); }
+
+/* --- Rose des vents : dessin d'écran, transparent aux clics ---
+   Le divIcon fait 840 px de côté et couvre une large part de la carte : sans
+   pointer-events:none il intercepterait glissements, clics de terrain et menu
+   contextuel. */
+.compas-rose, .compas-rose * { pointer-events: none; }
+
+/* --- Bouton toggle du profil vertical : accentué quand ouvert ---
+   La rose n'est plus de la partie : elle tient son vert quoi qu'il arrive
+   (cf. le groupe vert du plan, plus haut). */
+#btn-profil.is-active { background: var(--bleu); color: #fff; }
+#btn-profil.is-active i[class^="ph-"] { color: #fff; }
+
+/* --- Panneau « Profil vertical » : bande en bas de la carte --- */
+.vp-panel {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 850;                 /* au-dessus des tuiles, sous le panneau des legs (900) */
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, .97);
+  border-top: 1px solid var(--accent);
+  box-shadow: 0 -6px 20px rgba(15, 23, 42, .18);
+}
+.vp-panel[hidden] { display: none; }
+main.legs-open .vp-panel { right: var(--legs-w); }
+/* Et à gauche devant le catalogue d'astres. Ici ce n'est pas qu'une question de
+   propreté : le panneau passe DEVANT (z-index 1001), donc sans ce retrait la
+   bande ne serait pas chevauchée mais amputée, et le profil se lirait tronqué
+   sans qu'on voie pourquoi. */
+main.astres-open .vp-panel { left: var(--astres-w); }
+/* Profil ouvert : remonte les contrôles Leaflet du bas (barre d'échelle km/mi/NM,
+   attribution) juste au-dessus de la bande, pour ne pas les chevaucher. */
+.leaflet-bottom { transition: bottom .15s ease; }
+main.profil-open .leaflet-bottom { bottom: var(--vp-h, 210px); }
+
+/* MÊME TRAITEMENT POUR LA BANDE DROITE.
+ *
+ * L'attribution (« Leaflet | OpenStreetMap ») est un contrôle Leaflet, donc
+ * z-index 1000 : elle flottait par-dessus le carnet de visées et le plan de
+ * vol, qui sont à 900. Elle SUIT donc le bord de la carte au lieu d'être
+ * cachée — l'attribution des tuiles est une obligation de la licence, on ne la
+ * masque pas, on la pousse là où la carte est encore visible.
+ *
+ * Une seule des deux règles peut s'appliquer à la fois : le carnet et le plan
+ * de vol se disputent la bande droite et s'excluent (voir visees.js). Le
+ * catalogue d'astres, lui, n'a besoin de rien — il est à GAUCHE, et il passe
+ * déjà devant (z-index 1001). */
+.leaflet-bottom.leaflet-right { transition: right .15s ease, bottom .15s ease; }
+main.legs-open .leaflet-bottom.leaflet-right { right: var(--legs-w); }
+main.visees-open .leaflet-bottom.leaflet-right { right: var(--visees-w); }
+
+/* Panneau du profil ouvert : les échelles (km / mi / NM) s'effacent. Elles
+   occupent le même coin bas-gauche que la bande du profil, et une échelle
+   horizontale n'a rien à dire pendant qu'on lit une coupe verticale.
+   L'attribution des tuiles, elle, reste — d'où le décalage ci-dessus. */
+.leaflet-control-scale { transition: opacity .15s ease; }
+main.profil-open .leaflet-control-scale { opacity: 0; visibility: hidden; }
+
+.vp-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 10px; border-bottom: 1px solid var(--line); background: var(--panel);
+}
+.vp-title { display: inline-flex; align-items: center; gap: 6px; color: var(--title); font-weight: 700; font-size: 13px; }
+.vp-close {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 2px 5px; background: transparent; border: 1px solid var(--line);
+  border-radius: 5px; cursor: pointer;
+}
+.vp-close:hover { border-color: var(--accent); background: var(--panel-2); }
+.vp-close i[class^="ph-"] { font-size: 16px; }
+
+.vp-graph { padding: 8px 10px 10px; }
+.vp-empty { color: var(--muted); font-size: 12px; padding: 20px 6px; text-align: center; }
+.vp-summary { color: var(--ink); font-size: 12px; margin-bottom: 6px; }
+.vp-summary-warn { color: var(--warn); font-weight: 600; }
+
+/* Indicateur de vent : centré horizontalement, même ligne que les menus carte */
+/* L'indicateur de vent qui se recentrait ici est parti : il affichait le vent
+   RÉEL du simulateur, et il suffisait de le recopier dans la case du vent
+   prévu pour que l'estime cesse de dériver. Voir avion.js. */
+/* Même raison à gauche, avec le catalogue d'astres — et une raison de plus :
+   ce panneau-là passe DEVANT (z-index 1001), donc sans ce décalage l'indicateur
+   ne serait pas par-dessus mais dessous, c'est-à-dire disparu. Les deux
+   panneaux ouverts ensemble : les deux amputations se composent. */
+
+/* Étiquettes de la mesure de distance : texte nu, sans cadre, tourné selon le
+   trait (transform posé en ligne depuis mesure-carte.js). */
+.mesure-etiquette {
+  background: transparent !important;
+  border: none !important;
+}
+.mesure-etiquette-texte {
+  display: inline-block;
+  color: #0d47a1;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 15px;
+  line-height: 1;
+  font-weight: bold;
+  white-space: nowrap;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+}
+
+/* Étiquette d'un flanquement VOR : même façon que la mesure, autre couleur. */
+.flanq-etiquette {
+  background: transparent !important;
+  border: none !important;
+}
+.flanq-etiquette-texte {
+  display: inline-block;
+  color: #c026a3;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: bold;
+  white-space: nowrap;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+}
+
+/* Liste des cibles dans la modale de flanquement. */
+.flanq-list {
+  max-height: 240px;
+  overflow-y: auto;
+  margin: .3rem 0 .2rem;
+  border: 1px solid var(--sep);
+  border-radius: 6px;
+}
+.flanq-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: .35rem .6rem;
+  cursor: pointer;
+}
+.flanq-item:hover { background: var(--panel-2); }
+.flanq-item-nom { font-size: 14px; }
+/* Le point quelconque n'est pas un point de la route : un filet l'en sépare. */
+.flanq-item-carte {
+  border-top: 1px solid var(--sep);
+  font-style: italic;
+}
+/* Marqueur avion : image orientée selon le cap (rotation CSS), sans le
+   fond/bordure blancs par défaut des divIcon Leaflet. */
+/* Pavé d'attribution Leaflet adapté au thème sombre */
+.leaflet-control-attribution {
+  background: rgba(255, 255, 255, .9) !important;
+  color: var(--muted) !important;
+}
+.leaflet-control-attribution a { color: var(--accent) !important; }
+
+/* Bouton de suivi de l'avion (haut-gauche, sous le zoom) */
+.map-follow-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 5px rgba(15, 23, 42, .18);
+}
+.map-follow-btn i[class^="ph-"] { font-size: 20px; color: var(--accent); }
+.map-follow-btn:hover { background: var(--bande); }
+.map-follow-btn.active { background: var(--accent); }
+.map-follow-btn.active i[class^="ph-"] { color: #fff; }   
+/* Contrôles déroulants (haut-droite de la carte) : couches + fond, côte à côte */
+.map-controls { display: flex; flex-direction: row; gap: 6px; }
+.map-dropdown { position: relative; }
+.map-dd-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 5px rgba(15, 23, 42, .18);
+}
+.map-dd-btn i[class^="ph-"] { font-size: 20px; color: var(--accent); }
+.map-dd-btn:hover { background: var(--bande); }
+.map-dd-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 170px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .18);
+}
+.map-dd-panel[hidden] { display: none; }   /* hidden l'emporte sur display:flex */
+.map-dd-panel label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: .35rem .5rem;
+  border-radius: 6px;
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.map-dd-panel label:hover { background: var(--panel-2); }
+.map-dd-panel input { accent-color: var(--accent); cursor: pointer; }
+
+/* Infobulles aéroports / navaids (thème sombre) */
+.leaflet-tooltip.airport-tooltip,
+.leaflet-tooltip.navaid-tooltip {
+  background: #ffffff;
+  border: 1px solid var(--accent);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 4px 7px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, .18);
+}
+/* Points de report VFR : même infobulle, liseré noir — la couleur du repère sur
+   la carte, pour qu'on relie l'un à l'autre sans réfléchir. */
+.leaflet-tooltip.vfr-tooltip {
+  background: #ffffff;
+  border: 1px solid #000000;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 4px 7px;
+  max-width: 240px;
+  white-space: normal;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, .18);
+}
+.leaflet-tooltip.airport-tooltip::before,
+.leaflet-tooltip.navaid-tooltip::before,
+.leaflet-tooltip.vfr-tooltip::before { display: none; }   
+/* Obstacles et feux aéronautiques : liseré du bleu de la carte OACI. */
+.leaflet-tooltip.obst-tooltip {
+  background: #ffffff;
+  border: 1px solid #1c3f94;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 4px 7px;
+  max-width: 250px;
+  white-space: normal;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, .18);
+}
+.leaflet-tooltip.obst-tooltip::before { display: none; }
+.obst-tt-type { font-weight: 700; color: #1c3f94; }
+/* La hauteur sol en premier et en gras : c'est elle qui dit s'il faut monter. */
+.obst-tt-agl { font-weight: 700; margin-top: 2px; }
+.obst-tt-amsl, .obst-tt-bal { color: var(--muted); }
+.obst-tt-rem { margin-top: 3px; font-style: italic; color: var(--muted); }
+
+.vfr-tt-ident { font-weight: 700; color: #000000; }
+.vfr-tt-desc { margin-top: 2px; }
+/* Relèvement et distance depuis un moyen radio, quand le SIA les donne. */
+.vfr-tt-situation { margin-top: 2px; color: var(--muted); }
+
+/* Labels permanents des points tournants : nom rouge, contour blanc 1 px,
+   posés à côté du point (voir dessinerLabelsPoints, masqués si ça chevauche). */
+.wp-label-wrap { pointer-events: none; display: flex; align-items: center; justify-content: center; }
+.wp-label {
+  font: 700 12px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #ff0000;
+  white-space: nowrap;
+  line-height: 16px;
+  pointer-events: none;
+  /* contour blanc 1 px (halo sur les 4 directions + léger adoucissement) */
+  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 1px #fff;
+}
+.ap-tt-icao, .nv-tt-ident { color: var(--accent); font-weight: 700; }
+.ap-tt-name { color: var(--title); }
+.ap-tt-rwy, .nv-tt-type, .nv-tt-freq, .nv-tt-range { color: var(--muted); }
+
+/* Popups des lieux de poser (thème sombre) */
+.leaflet-popup-content-wrapper {
+  background: #ffffff;
+  color: var(--ink);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, .18);
+}
+.leaflet-popup-tip { background: #ffffff; border: 1px solid var(--accent); }
+.leaflet-popup-content { margin: 8px 10px; font-size: 12px; line-height: 1.4; }
+.leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+.leaflet-container a.leaflet-popup-close-button:hover { color: var(--accent); }
+
+.unit { color: var(--muted); font-size: 11px; }
+
+/* --- Modales (overlay + boîte) --- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* AU-DESSUS DE TOUT, écran d'accueil compris (2000) et bannière de mise à
+     jour (2000). Une modale qui s'ouvre derrière quelque chose est une modale
+     qui n'existe pas : c'est ce qui rendait la saisie de la clé inatteignable
+     depuis l'écran d'accueil, là où elle est justement indispensable. */
+  z-index: 2100;
+}
+.overlay[hidden] { display: none; }
+.modal {
+  width: min(520px, 92vw);
+  max-height: 88vh;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 20px 22px;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, .18);
+}
+.modal h3 { margin: 0 0 14px; font-size: 1.15rem; color: var(--title); }
+.modal-text { color: var(--ink); line-height: 1.55; margin: 0 0 18px; }
+
+.modal-status {
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: .9rem;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+/* Les trois teintes venaient d'un fond sombre : pâles sur le fond clair des
+   modales, elles étaient illisibles. L'état favorable passe en noir, l'erreur
+   et l'avertissement gardent leur sens mais dans une valeur qui se lit. Seule
+   la bordure porte encore la couleur d'état. */
+.modal-status.is-ok    { border-color: var(--accent); color: var(--ink); }
+.modal-status.is-error { border-color: var(--danger); color: var(--rouge-h); }
+.modal-status.is-warn  { border-color: var(--warn); color: var(--warn); }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+/* Message d'erreur de la modale « cercle de portée » (vide = invisible) */
+.modal-error { margin: 0 0 14px; min-height: 1em; color: var(--danger); font-size: .85rem; }
+
+/* Un peu plus large et de hauteur FIXE : la liste grandit à l'intérieur, sans
+   faire sauter la boîte à chaque frappe — on lit une liste qui bouge très mal. */
+.recherche-modal { width: min(620px, 94vw); display: flex; flex-direction: column; height: min(640px, 88vh); }
+.recherche-modal .modal-text { margin-bottom: 12px; font-size: .88rem; }
+
+.recherche-etat {
+  margin: 8px 0 6px;
+  min-height: 1em;
+  font-size: .82rem;
+  color: var(--muted);
+}
+/* Base absente : ce n'est pas « aucun résultat », c'est une action à faire. */
+.recherche-etat.est-avert { color: var(--warn); font-weight: 600; }
+
+.recherche-liste {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+.recherche-liste:empty { border-style: dashed; }
+
+/* Une ligne de résultat : le code en tête (colonne fixe, en chasse fixe pour que
+   les codes s'alignent), le nom, puis le détail qui départage deux terrains
+   homonymes. */
+.recherche-item {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  grid-template-areas: 'code nom' 'code detail';
+  column-gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--sep);
+  border-left: 3px solid transparent;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+.recherche-item:last-child { border-bottom: 0; }
+.recherche-item:hover { background: var(--bande); }
+/* Ligne visée au clavier : Entrée l'ouvre. Le liseré à gauche la distingue du
+   simple survol de la souris, qui peut être ailleurs. */
+.recherche-item.est-vise { background: var(--bande); border-left-color: var(--bleu); }
+.recherche-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.recherche-code {
+  grid-area: code;
+  align-self: center;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--accent);
+}
+.recherche-nom { grid-area: nom; font-size: 13px; font-weight: 600; color: var(--title); }
+.recherche-detail { grid-area: detail; font-size: 11px; color: var(--muted); }
+
+/* +50px de hauteur via le padding vertical (20 → 45), largeur inchangée.
+   position:relative pour ancrer le pied en absolu ; padding bas élargi pour
+   réserver la place du pied et éviter tout chevauchement avec le contenu. */
+.about-modal { position: relative; width: min(480px, 92vw); padding-top: 45px; padding-bottom: 64px; }
+/* Pied de modale : version à gauche (blanc), bouton Fermer à droite,
+   ancré à 15px du bas de la fenêtre (les deux sur la même rangée). */
+.about-modal .about-footer {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 15px;
+  margin: 0;
+  justify-content: space-between;
+  align-items: center;
+}
+.about-version { color: var(--muted); font-size: .85rem; letter-spacing: .3px; }
+.about-modal h3 { text-align: center; text-transform: uppercase; letter-spacing: .5px; }
+.about-product { margin: 0 0 12px; text-align: center; font-weight: 700; font-size: 1.05rem; color: var(--accent); }
+.about-modal .about-line { margin: 0 0 10px; color: var(--ink); line-height: 1.55; font-size: .9rem; }
+.about-sep { border: none; border-top: 1px solid var(--line); margin: 14px 0; }
+.about-credit-title { margin: 0 0 8px; font-weight: 700; color: var(--ink); font-size: .9rem; }
+.about-links { margin: 0; padding-left: 18px; color: var(--ink); font-size: .85rem; line-height: 1.6; }
+.about-modal a { color: var(--accent); text-decoration: none; }
+.about-modal a:hover { text-decoration: underline; }
+.about-modal code { font-family: var(--mono); font-size: .85em; }
+
+/* Barre de progression (import aéroports MSFS) */
+.progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  margin: 4px 0 10px;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width .25s ease;
+}
+.progress-count {
+  margin: 0 0 4px;
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--accent);
+  text-align: center;
+}
+.progress-stats {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  min-height: 1em;
+}
+
+/* Champs de saisie texte dans les modales (clé API, URL) */
+.field-label {
+  display: block;
+  margin: 0 0 5px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.field-input {
+  display: block;
+  width: 100%;
+  margin: 0 0 16px;
+  padding: .55rem .7rem;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.field-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.field-input::placeholder { color: #555; }
+
+/* Bouton danger (effacement) */
+.btn-danger { background: var(--rouge); color: #fff; }
+.btn-danger:hover, .btn-danger:focus-visible { background: var(--rouge-h); }
+
+/* Boutons désactivés */
+.btn:disabled,
+.btn:disabled:hover,
+.btn-accent:disabled,
+.btn-accent:disabled:hover,
+.btn-icon:disabled,
+.btn-icon:disabled:hover {
+  background: var(--off-bg);
+  color: var(--off-ink);
+  cursor: not-allowed;
+}
+
+/* --- Bannière de mise à jour (electron-updater) --- */
+.update-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 90vw;
+  padding: 10px 16px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, .18);
+  color: var(--ink);
+  font-size: .9rem;
+}
+.update-banner[hidden] { display: none; }
+.update-banner i[class^="ph-"] { font-size: 20px; color: var(--accent); flex: none; }
+.update-banner-text { white-space: nowrap; }
+.update-banner .btn-accent { flex: none; }
+
+/* Note de bas de menu déroulant (« visibles à partir du zoom 8 »). */
+.map-dd-note {
+  margin: 6px 2px 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.35;
+}

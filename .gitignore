@@ -1,0 +1,56 @@
+# --- Dépendances et sorties de construction ---------------------------------
+node_modules/
+desk/dist/
+dist/
+
+# --- Réglages locaux --------------------------------------------------------
+# `config.example.json` est versionné, `config.json` ne l'est jamais : il porte
+# les chemins de CETTE machine, et son port de pont.
+desk/config.json
+.claude/
+*.log
+
+# --- L'ADDON MSFS NE PART PAS DANS CE DÉPÔT ---------------------------------
+# `sextant-navigator` ne publie que l'APPLICATION de bureau. Le panneau du
+# simulateur est un autre objet, avec son propre cycle de sortie (flightsim.to,
+# un paquet Community, un .spb compilé au SDK) — il vivra ailleurs.
+#
+# Le noyau `src/`, LUI, RESTE : ce n'est pas l'addon, c'est le calcul. En
+# développement `desk` l'importe depuis `../src` (voir desk/src/main/noyau.js)
+# et `extraResources` l'y prend pour l'empaqueter. Sans lui, le dépôt ne
+# démarre pas et `npm run dist` échoue. Ne pas l'exclure « pour faire propre ».
+panel/
+
+# Ce test-là dessine la Lune du CHAMP DE VISÉE, donc il importe
+# `panel/.../viewport.js`. Sans le panneau, il échoue à l'import et fait tomber
+# tout `npm test`. Il reste sur la machine, avec le panneau qu'il éprouve.
+test/viewport-moon.test.js
+
+# --- Le reste de l'atelier, qui ne sert pas à l'application ------------------
+# `reference/` et `examples/` NE SONT PAS ICI, et c'est délibéré : 20 Ko de
+# positions Hipparcos et JPL Horizons dont `catalog.test.js` et
+# `planets.test.js` ont besoin pour tourner. Sans eux, `npm test` échoue dans un
+# dépôt fraîchement cloné — sur une lecture de fichier, sans rapport visible
+# avec l'astronomie.
+#
+# `tools/` reste dehors : ce sont les outils qui REGÉNÈRENT ces références
+# (SIMBAD, Horizons, IMCCE — tous en réseau), plus la sonde du moteur du
+# panneau. Rien de tout cela ne sert à faire tourner l'application.
+tools/
+
+# --- Règle générale : rien qui ne nous appartienne --------------------------
+# Les logiciels tiers gardés pour étude vivent HORS de ce dossier depuis le
+# 2026-08-25. S'il fallait un jour en remettre un ici, il devrait être exclu :
+# aucune licence ne nous autorise à rediffuser le travail d'autrui.
+
+# --- Documents lourds -------------------------------------------------------
+# Manuels d'époque de l'USAF, ~55 Mo à eux deux. Ils entreraient dans
+# l'historique git pour toujours, et chaque clone les téléchargerait. Ils
+# restent sur la machine et servent de source ; les deux documents que le
+# projet a ÉCRITS (Du-sextant-au-point.docx, From-Sextant-to-Fix.docx) sont
+# versionnés, eux.
+documentation/*.pdf
+
+# --- Windows ----------------------------------------------------------------
+Thumbs.db
+desktop.ini

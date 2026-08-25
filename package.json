@@ -1,0 +1,22 @@
+{
+  "name": "sextant-core",
+  "version": "0.1.0",
+  "description": "Noyau d'éphémérides et de réduction de visée pour un sextant à bulle aéronautique",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "panel:build": "node panel/build.mjs",
+    "panel:spb": "node panel/compile-spb.mjs",
+    "panel:dev": "node panel/dev-server.mjs",
+    "panel:install": "node panel/install.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

@@ -1,0 +1,6 @@
+{
+  "_commentaire": "Déposé par electron-builder à côté du noyau d'éphémérides, dans resources/noyau/. Sans lui, Node lirait les fichiers du noyau comme du CommonJS et refuserait leurs 'import' — le catalogue d'astres marcherait en développement et tomberait une fois l'application installée. Voir extraResources dans package.json et cheminNoyau() dans src/main/astres.js.",
+  "name": "sextant-core-embarque",
+  "private": true,
+  "type": "module"
+}
