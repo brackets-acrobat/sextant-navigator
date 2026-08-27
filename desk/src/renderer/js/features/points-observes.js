@@ -71,33 +71,63 @@ function reporterPoint({ utc, lat, lon, depuis } = {}) {
 
   effacerPoint(cle);
 
+  const aVecteur = !!(depuis && Number.isFinite(depuis.lat) && Number.isFinite(depuis.lon));
+  const [llDepuis, llPoint] = _pointObsLatLngs(lat, lon, aVecteur ? depuis : null);
+
   const couches = [];
   // Le vecteur d'abord : il passe SOUS la marque, pas dessus.
-  if (depuis && Number.isFinite(depuis.lat) && Number.isFinite(depuis.lon)) {
-    couches.push(L.polyline([[depuis.lat, depuis.lon], [lat, lon]], {
+  if (aVecteur) {
+    couches.push(L.polyline([llDepuis, llPoint], {
       color: '#059669',
       weight: 2,
       opacity: 0.9,
       interactive: false,
     }).addTo(map));
   }
-  couches.push(L.marker([lat, lon], {
+  couches.push(L.marker(llPoint, {
     icon: iconePointObserve(heurePoint(utc)),
     interactive: false,
     zIndexOffset: 500,
   }).addTo(map));
 
-  _pointsObserves.set(cle, couches);
+  // Les coordonnées sont gardées à côté des calques : la carte défile à
+  // l'infini, et il faut pouvoir replacer la marque dans la copie du monde
+  // regardée après un franchissement de la ligne de changement de date.
+  _pointsObserves.set(cle, { couches, lat, lon, depuis: aVecteur ? depuis : null });
+}
+
+// Positions d'affichage de la marque et de l'estime dont elle est partie : le
+// point est ancré sur la vue, le vecteur déroulé à partir de lui pour ne jamais
+// faire le tour du monde.
+function _pointObsLatLngs(lat, lon, depuis) {
+  const lonAff = ancrerSurVue(lon);
+  if (!depuis) return [null, [lat, lonAff]];
+  const disp = deroulerLons([{ lat, lon }, depuis]);
+  return [[depuis.lat, lonAff + (disp[1] - disp[0])], [lat, lonAff]];
 }
 
 function effacerPoint(cle) {
-  const couches = _pointsObserves.get(cle);
-  if (!couches) return;
-  couches.forEach((c) => { try { map.removeLayer(c); } catch (_) {} });
+  const entree = _pointsObserves.get(cle);
+  if (!entree) return;
+  entree.couches.forEach((c) => { try { map.removeLayer(c); } catch (_) {} });
   _pointsObserves.delete(cle);
 }
 
 /** Table rase : nouveau vol. */
 function effacerPointsObserves() {
   for (const cle of Array.from(_pointsObserves.keys())) effacerPoint(cle);
+}
+
+// Replace les points observés dans la copie du monde regardée. Le vecteur suit
+// la marque : c'est lui l'essentiel du report, il ne doit jamais s'étirer d'un
+// tour du monde parce qu'on a déplacé la carte.
+function reposerPointsObservesSiCopieChangee() {
+  if (!map) return;
+  for (const e of _pointsObserves.values()) {
+    const marque = e.couches[e.couches.length - 1];
+    if (!copieMondeObsolete(e.lon, marque.getLatLng().lng)) continue;
+    const [llDepuis, llPoint] = _pointObsLatLngs(e.lat, e.lon, e.depuis);
+    marque.setLatLng(llPoint);
+    if (e.couches.length > 1) e.couches[0].setLatLngs([llDepuis, llPoint]);
+  }
 }

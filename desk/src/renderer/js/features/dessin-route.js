@@ -37,6 +37,16 @@ function centrerSurRoute() {
   });
 }
 
+// La carte vient-elle de changer de copie du monde ? Le tracé est resté dans
+// l'ancienne, donc hors écran : on le repose dans celle qu'on regarde. Appelé à
+// chaque fin de déplacement — le seul moment où la question se pose, puisque le
+// zoom, lui, redessine déjà. La comparaison porte sur la longitude RÉELLEMENT
+// dessinée : après redessin elle concorde, aucun risque de boucle.
+function reposerRouteSiCopieChangee() {
+  if (!_routeGeom || !_routeGeom.points.length) return;
+  if (ancrerSurVue(_routeGeom.points[0].lon) !== _routeGeom.disp[0]) dessinerRoute();
+}
+
 // ============================================================
 // Survol du tracé → repère sur le profil vertical.
 //

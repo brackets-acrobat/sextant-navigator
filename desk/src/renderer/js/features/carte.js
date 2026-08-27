@@ -147,6 +147,9 @@ function initMap() {
   initCompas();   // rose des vents (son propre pane, sous l'avion)
   map.on('moveend', planifierRafraichirCouches);
   map.on('zoomend', planifierRafraichirCouches);
+  // Franchir l'antiméridien à la souris change de copie du monde : les calques,
+  // posés dans l'ancienne, sortiraient de l'écran. On les y ramène.
+  map.on('moveend', replacerCalquesSurVue);
   // Clic droit sur le fond de carte (hors marqueur) → départ (ZZZY) / arrivée (ZZZZ).
   map.on('contextmenu', ouvrirMenuFondCarte);
   map.on('movestart zoomstart', fermerMenuContextuel);
@@ -163,6 +166,64 @@ function appliquerFond(key) {
   baseLayer = L.tileLayer(def.url, def.options).addTo(map);
   baseLayer.bringToBack();
   localStorage.setItem('sextant-basemap', BASE_LAYERS[key] ? key : 'opentopomap');
+}
+
+// ============================================================
+// Copies du monde (défilement horizontal infini de Leaflet).
+//
+// Leaflet ne replie PAS la longitude du centre de carte : franchir la ligne de
+// changement de date à la souris fait glisser la vue dans la copie du monde
+// suivante (+360°), et les tuiles, qui se répètent, n'en laissent rien
+// paraître. Les calques, eux, restent posés à la longitude qu'on leur donne.
+// Un tracé placé à sa longitude de stockage ([-180,180]) se retrouve alors des
+// dizaines de milliers de pixels hors de l'écran : invisible, alors que le
+// panneau du plan, qui ne calcule que des distances et des caps, continue de
+// tout afficher correctement.
+//
+// C'est le Pacifique qui en souffre, et lui seul : la copie de référence se
+// referme justement sur l'antiméridien. Partout ailleurs, on ne quitte pas la
+// copie 0 sans le vouloir.
+// ============================================================
+
+// Longitude ramenée dans la plage de 360° qui commence à `west`. Convient aux
+// symboles qu'on ne dessine QUE parce qu'ils sont dans la vue (couches MSFS).
+function lonVersVue(lon, west) { return west + ((((lon - west) % 360) + 360) % 360); }
+
+// Longitude ramenée dans la copie du monde la plus proche du centre de la carte.
+// Contrairement à lonVersVue, qui part du bord ouest, celle-ci garde son sens
+// pour un point hors écran — le départ d'une route dont on ne voit que l'arrivée.
+function ancrerSurVue(lon) {
+  if (!map || !Number.isFinite(lon)) return lon;
+  return lon + Math.round((map.getCenter().lng - lon) / 360) * 360;
+}
+
+// Un calque posé à `lonDessinee` a-t-il quitté la copie du monde regardée ?
+// C'est la question que chaque replaceur se pose avant de bouger quoi que ce
+// soit : la comparaison porte sur la longitude RÉELLEMENT dessinée, si bien
+// qu'après replacement elle concorde et que rien ne se répète.
+//
+// Elle ne se réduit pas au numéro de copie du centre : un point posé à 179,5°
+// change d'ancrage quand la vue passe de 179° à −179°, alors que le centre
+// n'a pas quitté la copie 0. C'est le cas des terrains qui bordent la ligne
+// de changement de date — celui, précisément, qu'on ne veut pas manquer.
+function copieMondeObsolete(lonStockee, lonDessinee) {
+  return ancrerSurVue(lonStockee) !== lonDessinee;
+}
+
+// Replace, dans la copie du monde qu'on regarde, tous les calques posés à des
+// longitudes de stockage. Appelé à chaque fin de déplacement de la carte ;
+// chacun vérifie d'abord s'il a quelque chose à faire, et ne fait rien le
+// reste du temps. Les couches MSFS n'y figurent pas : elles se reconstruisent
+// déjà à chaque déplacement, avec leur propre recalage (lonVersVue).
+function replacerCalquesSurVue() {
+  reposerRouteSiCopieChangee();
+  reposerEstimeSiCopieChangee();
+  reposerCerclesSiCopieChangee();
+  reposerMesureSiCopieChangee();
+  reposerFlanquementsSiCopieChangee();
+  reposerPointsObservesSiCopieChangee();
+  reposerRepereRechercheSiCopieChangee();
+  reposerCompasSiCopieChangee();
 }
 
 // Largeur (px) du panneau qui recouvre la carte sur sa droite — le plan de vol.

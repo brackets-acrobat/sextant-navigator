@@ -32,12 +32,16 @@ const MESURE_COULEUR = '#0d47a1';
 const MESURE_ECART_PX = 12;   // demi-épaisseur du trait + demi-hauteur du texte
 const MESURE_POINT_R = 3.5;   // rayon des points d'extrémité
 
-let _mesureDepart = null;     // L.LatLng
+let _mesureDepart = null;     // L.LatLng — en longitude d'AFFICHAGE
 let _mesureTrait = null;      // L.Polyline
 let _mesurePointDebut = null; // L.CircleMarker — extrémité de départ
 let _mesurePointFin = null;   // L.CircleMarker — extrémité d'arrivée
 let _mesureEtiquettes = [];   // L.Marker
 let _mesureEnTrace = false;   // entre le démarrage et le second clic
+// Les deux extrémités en COORDONNÉES DE STOCKAGE, pour pouvoir replacer la
+// mesure dans la copie du monde regardée après un franchissement de la ligne de
+// changement de date. { lat, lon } chacune, ou null.
+let _mesureA = null, _mesureB = null;
 
 // Point d'extrémité : liseré blanc pour rester visible sur un fond chargé ou
 // par-dessus une zone colorée.
@@ -64,6 +68,7 @@ function aUneMesure() { return !!(_mesureTrait || _mesureEtiquettes.length); }
 
 function _mesureSurDeplacement(e) {
   if (!_mesureEnTrace || !_mesureTrait || !_mesureDepart) return;
+  _mesureB = { lat: e.latlng.lat, lon: wrapLon(e.latlng.lng) };
   _mesureTrait.setLatLngs([_mesureDepart, e.latlng]);
   if (_mesurePointFin) _mesurePointFin.setLatLng(e.latlng);
 }
@@ -131,6 +136,7 @@ async function _mesureTerminer(finLatLng) {
   _mesureDebrancher();
   if (!_mesureTrait || !_mesureDepart || !finLatLng) return;
   const depart = _mesureDepart;
+  _mesureB = { lat: finLatLng.lat, lon: wrapLon(finLatLng.lng) };
   _mesureTrait.setLatLngs([depart, finLatLng]);
   if (_mesurePointFin) _mesurePointFin.setLatLng(finLatLng);
 
@@ -168,10 +174,37 @@ async function _mesureTerminer(finLatLng) {
 // Entrées
 // ------------------------------------------------------------
 
+// Replace la mesure dans la copie du monde regardée. Le départ vient parfois
+// d'un aéroport (longitude de stockage), l'arrivée toujours d'un clic
+// (longitude déjà dans la vue) : sans recalage, les deux se retrouvent à un
+// tour du monde l'une de l'autre dès qu'on a franchi l'antiméridien.
+// L'angle des étiquettes, lui, ne bouge pas — un décalage de 360° est une
+// translation pure à l'écran.
+function reposerMesureSiCopieChangee() {
+  if (!_mesureTrait || !_mesureA || !_mesureB) return;
+  const dessine = _mesureTrait.getLatLngs();
+  if (!dessine.length || !copieMondeObsolete(_mesureA.lon, dessine[0].lng)) return;
+  const disp = deroulerLons([_mesureA, _mesureB]);
+  const a = L.latLng(_mesureA.lat, disp[0]);
+  const b = L.latLng(_mesureB.lat, disp[1]);
+  _mesureDepart = a;
+  _mesureTrait.setLatLngs([a, b]);
+  if (_mesurePointDebut) _mesurePointDebut.setLatLng(a);
+  if (_mesurePointFin) _mesurePointFin.setLatLng(b);
+  const milieu = [(a.lat + b.lat) / 2, (a.lng + b.lng) / 2];
+  _mesureEtiquettes.forEach((m) => m.setLatLng(milieu));
+}
+
 function demarrerMesure(latlng) {
   if (!latlng || !map) return;
   effacerMesure();   // jamais plus d'une mesure à la fois
-  const lon = latlng.lng !== undefined ? latlng.lng : latlng.lon;
+  const brut = latlng.lng !== undefined ? latlng.lng : latlng.lon;
+  // Un aéroport donne sa longitude de stockage, un clic celle de la vue :
+  // l'ancrage remet les deux dans la copie du monde qu'on regarde (et ne
+  // touche pas à la seconde, déjà au bon endroit).
+  const lon = ancrerSurVue(brut);
+  _mesureA = { lat: latlng.lat, lon: wrapLon(brut) };
+  _mesureB = { lat: latlng.lat, lon: wrapLon(brut) };
   _mesureDepart = L.latLng(latlng.lat, lon);
   _mesureTrait = L.polyline([_mesureDepart, _mesureDepart], {
     color: MESURE_COULEUR, weight: 2, opacity: 1, interactive: false,
@@ -193,4 +226,6 @@ function effacerMesure() {
   _mesurePointFin = null;
   _mesureEtiquettes = [];
   _mesureDepart = null;
+  _mesureA = null;
+  _mesureB = null;
 }

@@ -17,8 +17,9 @@ function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-// Décale une longitude [-180,180] vers la copie du monde visible (scroll infini).
-function lonVersVue(lon, west) { return west + ((((lon - west) % 360) + 360) % 360); }
+// lonVersVue (décalage vers la copie du monde visible) vit désormais dans
+// carte.js, aux côtés de la carte et de son jumeau ancrerSurVue : le tracé de
+// route en a besoin lui aussi.
 
 // Couleur du marqueur aéroport selon la surface de la piste principale (NavXpress).
 function surfaceMarkerColors(surface) {

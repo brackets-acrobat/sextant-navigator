@@ -20,6 +20,17 @@ let _estimeEtat = null;
 let _estimeMarker = null;
 let _estimeTrace = null;
 
+// Points de la trace en COORDONNÉES DE STOCKAGE, à côté de la polyligne qui les
+// affiche. La carte défilant à l'infini, la longitude d'affichage d'un point
+// dépend de la copie du monde regardée (cf. ancrerSurVue) : sans la donnée
+// d'origine, une trace posée avant de franchir la ligne de changement de date
+// serait irrécupérable.
+let _estimeTracePts = [];
+// Traces des estimes précédentes, abandonnées par un calage sur point observé.
+// Elles restent sur la carte — c'est tout l'intérêt, voir recalerEstimeSur —
+// donc elles doivent, elles aussi, pouvoir suivre la vue. { couche, pts }
+let _estimeTracesAnciennes = [];
+
 /**
  * Où l'on croit être, ou `null` si l'estime n'est pas calée.
  *
@@ -56,15 +67,27 @@ function distanceNmSimple(a, b) {
   );
 }
 
+// Latitudes/longitudes d'affichage d'une trace : longitudes déroulées à partir
+// de la copie du monde regardée, comme pour le tracé de route.
+function _estimeLatLngs(pts) {
+  const disp = deroulerLons(pts);
+  return pts.map((p, i) => [p.lat, disp[i]]);
+}
+
 function dessinerEstimeCarte(e) {
   if (!map) return;
   if (!e.calee) {
     if (_estimeMarker) { map.removeLayer(_estimeMarker); _estimeMarker = null; }
     if (_estimeTrace) { map.removeLayer(_estimeTrace); _estimeTrace = null; }
+    _estimeTracePts = [];
     _estimeDernierPoint = null;
     return;
   }
-  const ll = [e.lat, e.lon];
+  // Position d'AFFICHAGE : la carte peut se trouver dans une autre copie du
+  // monde que celle où la longitude est stockée. Sans ce recalage, l'estime
+  // disparaît de l'écran dès qu'on a franchi la ligne de changement de date —
+  // et c'est le seul repère de position que la carte porte encore.
+  const ll = [e.lat, ancrerSurVue(e.lon)];
   if (!_estimeMarker) {
     _estimeMarker = L.marker(ll, { icon: ICONE_ESTIME, interactive: false }).addTo(map);
     // Première estime : on cadre dessus. C'est le seul repère de position que
@@ -81,14 +104,37 @@ function dessinerEstimeCarte(e) {
   // Trace en pointillés, dans le bleu de l'application : elle se distingue au
   // premier regard du tracé plein magenta de l'appareil.
   if (!_estimeTrace) {
-    _estimeTrace = L.polyline([ll], { color: '#2563eb', weight: 2, dashArray: '5 5', interactive: false }).addTo(map);
+    _estimeTracePts = [{ lat: e.lat, lon: e.lon }];
+    _estimeTrace = L.polyline(_estimeLatLngs(_estimeTracePts), { color: '#2563eb', weight: 2, dashArray: '5 5', interactive: false }).addTo(map);
     _estimeDernierPoint = { lat: e.lat, lon: e.lon };
     return;
   }
   if (!_estimeDernierPoint || distanceNmSimple({ lat: e.lat, lon: e.lon }, _estimeDernierPoint) >= ESTIME_PAS_NM) {
-    _estimeTrace.addLatLng(ll);
+    _estimeTracePts.push({ lat: e.lat, lon: e.lon });
+    // Déroulé par rapport au point précédent AFFICHÉ : un pas de trace fait un
+    // quart de mille, jamais un demi-tour du monde.
+    _estimeTrace.setLatLngs(_estimeLatLngs(_estimeTracePts));
     _estimeDernierPoint = { lat: e.lat, lon: e.lon };
   }
+}
+
+// Ramène le marqueur et les traces dans la copie du monde regardée. Les traces
+// abandonnées en font partie : elles racontent ce que le vent avait fait, et
+// n'auraient aucune raison de s'effacer parce qu'on a franchi l'antiméridien.
+function reposerEstimeSiCopieChangee() {
+  if (!map) return;
+  if (_estimeMarker && _estimeEtat && _estimeEtat.calee
+      && copieMondeObsolete(_estimeEtat.lon, _estimeMarker.getLatLng().lng)) {
+    _estimeMarker.setLatLng([_estimeEtat.lat, ancrerSurVue(_estimeEtat.lon)]);
+  }
+  const replacerTrace = (couche, pts) => {
+    if (!couche || !pts.length) return;
+    const dessinees = couche.getLatLngs();
+    if (!dessinees.length || !copieMondeObsolete(pts[0].lon, dessinees[0].lng)) return;
+    couche.setLatLngs(_estimeLatLngs(pts));
+  };
+  replacerTrace(_estimeTrace, _estimeTracePts);
+  _estimeTracesAnciennes.forEach((t) => replacerTrace(t.couche, t.pts));
 }
 
 // --- Le bandeau du carnet ----------------------------------------------------
@@ -207,7 +253,16 @@ async function recalerEstimeSur(lat, lon, utc, origine = 'point') {
   // même qui l'appliquait. On lâche simplement la référence : la polyligne
   // reste sur la carte, et personne n'a plus à la connaître. La continuité
   // n'est pas perdue pour autant — le vecteur de correction relie les deux.
+  //
+  // « Personne » à un détail près : on garde de quoi la REPLACER quand la carte
+  // change de copie du monde. Sans ses points d'origine, une trace abandonnée
+  // avant de franchir la ligne de changement de date resterait dans l'ancienne
+  // copie, hors écran et sans moyen d'en revenir.
+  if (_estimeTrace && _estimeTracePts.length) {
+    _estimeTracesAnciennes.push({ couche: _estimeTrace, pts: _estimeTracePts });
+  }
   _estimeTrace = null;
+  _estimeTracePts = [];
   _estimeDernierPoint = null;
   return e;
 }

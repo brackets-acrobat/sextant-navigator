@@ -354,7 +354,11 @@ function dessinerCompas() {
   if (!(nmParPx > 0)) { _compasEffacer(); return; }
 
   const m = _compasMarqueur();
-  m.setLatLng([centre.lat, centre.lon]);
+  // Ancrée sur la vue : centrée sur l'estime, la rose porte une longitude de
+  // stockage, qui sort de l'écran dès que la carte a franchi la ligne de
+  // changement de date. Sur le centre de carte, l'ancrage ne change rien —
+  // cette longitude-là est déjà celle de la copie regardée.
+  m.setLatLng([centre.lat, ancrerSurVue(centre.lon)]);
   const el = m.getElement();
   if (el) el.innerHTML = _compasSvg(decl, f, nmParPx);
 }
@@ -362,6 +366,16 @@ function dessinerCompas() {
 // Appelée à chaque trame du simulateur (avion.js).
 function majCompas() {
   if (_compasActif) dessinerCompas();
+}
+
+// Replace la rose dans la copie du monde regardée. Ne concerne QUE la rose
+// centrée sur l'estime : celle qui tient le centre de la carte y est par
+// construction, et son propre écouteur de déplacement s'en occupe déjà.
+function reposerCompasSiCopieChangee() {
+  if (!_compasActif || !_compasMarker) return;
+  const p = (typeof positionEstimee === 'function') ? positionEstimee() : null;
+  if (!p || !copieMondeObsolete(p.lon, _compasMarker.getLatLng().lng)) return;
+  dessinerCompas();
 }
 
 // --- Bouton et branchements --------------------------------------------------

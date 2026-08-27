@@ -50,13 +50,16 @@ async function resoudrePointIcao(valeur) {
 function wrapLon(lon) { return ((lon + 180) % 360 + 360) % 360 - 180; }
 
 // Déroule les longitudes d'une suite de points pour l'AFFICHAGE (antiméridien) :
-// chaque point reste dans la même copie du monde que le précédent (écart ≤ 180°),
-// pour que la ligne emprunte toujours le plus court chemin. Coordonnées stockées
-// inchangées. Renvoie le tableau des longitudes d'affichage.
+// le premier point est posé dans la copie du monde qu'on REGARDE (cf.
+// ancrerSurVue — sans quoi une route du Pacifique se dessine hors écran dès que
+// la carte a franchi la ligne de changement de date), et chaque point suivant
+// reste dans la même copie que le précédent (écart ≤ 180°), pour que la ligne
+// emprunte toujours le plus court chemin. Coordonnées stockées inchangées.
+// Renvoie le tableau des longitudes d'affichage.
 function deroulerLons(points) {
   const out = [];
   for (let i = 0; i < points.length; i++) {
-    if (i === 0) { out.push(points[0].lon); continue; }
+    if (i === 0) { out.push(ancrerSurVue(points[0].lon)); continue; }
     let d = points[i].lon - points[i - 1].lon;
     d = ((d + 180) % 360 + 360) % 360 - 180;
     out.push(out[i - 1] + d);

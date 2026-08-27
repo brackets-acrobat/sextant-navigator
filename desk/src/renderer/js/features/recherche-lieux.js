@@ -32,6 +32,7 @@ let _rechListe = [];          // derniers résultats affichés
 let _rechIdx = -1;            // résultat sous le curseur clavier
 let _rechMarqueur = null;     // repère bleu sur la carte
 let _rechEffaceur = null;     // écouteur « le prochain clic efface le repère »
+let _rechPos = null;          // { lat, lon } du repère, en coordonnées de stockage
 
 // ------------------------------------------------------------
 // Le repère sur la carte
@@ -40,6 +41,14 @@ let _rechEffaceur = null;     // écouteur « le prochain clic efface le repère
 function effacerRepereRecherche() {
   if (_rechMarqueur) { map.removeLayer(_rechMarqueur); _rechMarqueur = null; }
   if (_rechEffaceur) { map.off('click', _rechEffaceur); _rechEffaceur = null; }
+  _rechPos = null;
+}
+
+// Ramène le repère dans la copie du monde regardée (défilement infini).
+function reposerRepereRechercheSiCopieChangee() {
+  if (!_rechMarqueur || !_rechPos) return;
+  if (!copieMondeObsolete(_rechPos.lon, _rechMarqueur.getLatLng().lng)) return;
+  _rechMarqueur.setLatLng([_rechPos.lat, ancrerSurVue(_rechPos.lon)]);
 }
 
 // Anneau bleu à cœur blanc : même forme que le repère d'arrivée du brief, dans
@@ -47,7 +56,8 @@ function effacerRepereRecherche() {
 // le clic destiné à la carte, ni celui qui l'efface.
 function poserRepereRecherche(lat, lon) {
   effacerRepereRecherche();
-  _rechMarqueur = L.circleMarker([lat, lon], {
+  _rechPos = { lat, lon: wrapLon(lon) };
+  _rechMarqueur = L.circleMarker([lat, ancrerSurVue(lon)], {
     radius: 9, color: '#2563eb', weight: 3, fillColor: '#fff', fillOpacity: 1, interactive: false,
   }).addTo(map);
   _rechEffaceur = () => effacerRepereRecherche();

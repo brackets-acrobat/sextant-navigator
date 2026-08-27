@@ -125,6 +125,7 @@ async function creerFlanquement(navaid, cible) {
     trait: null,
     point: null,
     etiquette: null,
+    lonVorDessinee: null,   // longitude à laquelle la station a été posée
   };
 }
 
@@ -137,14 +138,19 @@ async function creerFlanquement(navaid, cible) {
 // effacerTousFlanquements() ne saura pas retirer.
 function _flanqTracer(f) {
   if (!map || !f) return;
+  // La station est posée dans la copie du monde qu'on REGARDE : la carte défile
+  // à l'infini, et une station laissée à sa longitude de stockage sort de
+  // l'écran dès qu'on a franchi la ligne de changement de date.
+  const lonVor = ancrerSurVue(f.vorLon);
   // Longitude de la cible déroulée par rapport à la station : l'antiméridien se
   // franchit proprement sans toucher à la donnée enregistrée.
-  let lonCible = f.lon;
-  while (lonCible - f.vorLon > 180) lonCible -= 360;
-  while (lonCible - f.vorLon < -180) lonCible += 360;
+  let lonCible = f.lon + (lonVor - f.vorLon);
+  while (lonCible - lonVor > 180) lonCible -= 360;
+  while (lonCible - lonVor < -180) lonCible += 360;
 
-  const pVor = L.latLng(f.vorLat, f.vorLon);
+  const pVor = L.latLng(f.vorLat, lonVor);
   const pCible = L.latLng(f.lat, lonCible);
+  f.lonVorDessinee = lonVor;   // témoin pour le replacement (cf. carte.js)
 
   const trait = L.polyline([pVor, pCible], {
     color: FLANQ_COULEUR, weight: 2, opacity: 0.9, dashArray: '6 5', interactive: true,
@@ -209,6 +215,18 @@ function supprimerFlanquement(f) {
 function effacerTousFlanquements() {
   _flanquements.forEach(_flanqRetirerTrace);
   _flanquements = [];
+}
+
+// Replace les flanquements dans la copie du monde regardée. Ici on retrace au
+// lieu de déplacer : l'étiquette porte un angle et un décalage en pixels
+// calculés au tracé, et la refaire coûte moins cher que de la démonter.
+// _flanqTracer est synchrone — le radial, lui, est déjà calculé.
+function reposerFlanquementsSiCopieChangee() {
+  for (const f of _flanquements) {
+    if (!f.trait || !copieMondeObsolete(f.vorLon, f.lonVorDessinee)) continue;
+    _flanqRetirerTrace(f);
+    _flanqTracer(f);
+  }
 }
 
 // ------------------------------------------------------------

@@ -18,24 +18,33 @@
 const MAGENTA = '#ff00ff';
 let _rangeLayer = null;          // créé dans initMap
 let _rangePendingLatLng = null;  // centre en attente (modale de saisie ouverte)
+// Centres en COORDONNÉES DE STOCKAGE, en regard des trois calques qui les
+// dessinent. La carte défile à l'infini : la longitude d'affichage dépend de la
+// copie du monde regardée, et sans le centre d'origine un cercle posé avant de
+// franchir la ligne de changement de date ne saurait pas revenir dans le champ.
+let _cercles = [];               // { lat, lon, couches: [] }
 
 function tracerCercle(lat, lon, nm, avecPoint) {
   if (!_rangeLayer || !Number.isFinite(lat) || !Number.isFinite(lon) || !Number.isFinite(nm) || nm <= 0) return;
   const rayonM = nm * 1852;
+  const centre = [lat, ancrerSurVue(lon)];
   // Trait visible (non interactif).
-  const visible = L.circle([lat, lon], { radius: rayonM, color: MAGENTA, weight: 2, opacity: 1, fill: false, interactive: false }).addTo(_rangeLayer);
+  const visible = L.circle(centre, { radius: rayonM, color: MAGENTA, weight: 2, opacity: 1, fill: false, interactive: false }).addTo(_rangeLayer);
   // Bande de clic invisible centrée sur le trait : ép. 4 = trait (2px) + 1px de
   // chaque côté (magnétisme). Trait « transparent » (≠ none) → cliquable même
   // invisible. Porte le menu contextuel du cercle.
-  const hit = L.circle([lat, lon], { radius: rayonM, color: 'transparent', weight: 4, opacity: 1, fill: false, interactive: true }).addTo(_rangeLayer);
+  const hit = L.circle(centre, { radius: rayonM, color: 'transparent', weight: 4, opacity: 1, fill: false, interactive: true }).addTo(_rangeLayer);
   let dot = null;
   if (avecPoint) {
-    dot = L.circleMarker([lat, lon], { radius: 4, stroke: false, fill: true, fillColor: MAGENTA, fillOpacity: 1, interactive: false }).addTo(_rangeLayer);
+    dot = L.circleMarker(centre, { radius: 4, stroke: false, fill: true, fillColor: MAGENTA, fillOpacity: 1, interactive: false }).addTo(_rangeLayer);
   }
+  const inscrit = { lat, lon: wrapLon(lon), couches: dot ? [visible, hit, dot] : [visible, hit] };
+  _cercles.push(inscrit);
   const supprimer = () => {
     _rangeLayer.removeLayer(visible);
     _rangeLayer.removeLayer(hit);
     if (dot) _rangeLayer.removeLayer(dot);
+    _cercles = _cercles.filter((c) => c !== inscrit);
   };
   hit.on('contextmenu', (e) => ouvrirMenuCercle(e, supprimer));
   hit.on('mouseover', () => { if (!_routeDragging) map.getContainer().style.cursor = 'pointer'; });
@@ -47,7 +56,18 @@ function tracerCercleNavaid(navaid) {
 }
 
 function aDesCercles() { return !!_rangeLayer && _rangeLayer.getLayers().length > 0; }
-function effacerCercles() { if (_rangeLayer) _rangeLayer.clearLayers(); }
+function effacerCercles() { if (_rangeLayer) _rangeLayer.clearLayers(); _cercles = []; }
+
+// Ramène les cercles dans la copie du monde regardée. Un cercle n'est qu'un
+// centre et un rayon : on le déplace, on ne le reconstruit pas.
+function reposerCerclesSiCopieChangee() {
+  for (const c of _cercles) {
+    const dessine = c.couches[0].getLatLng();
+    if (!copieMondeObsolete(c.lon, dessine.lng)) continue;
+    const centre = [c.lat, ancrerSurVue(c.lon)];
+    c.couches.forEach((l) => l.setLatLng(centre));
+  }
+}
 
 function ouvrirModaleCercle(latlng) {
   _rangePendingLatLng = latlng;
