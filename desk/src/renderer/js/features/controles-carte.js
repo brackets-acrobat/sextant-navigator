@@ -37,9 +37,12 @@ function ajouterControlesCarte() {
           `<label><input type="radio" name="basemap" data-base="openstreetmap"> OpenStreetMap</label>` +
           `<label><input type="radio" name="basemap" data-base="darkmatter"> Dark Matter</label>` +
           `<label><input type="radio" name="basemap" data-base="positron"> Positron</label>` +
-          `<label><input type="radio" name="basemap" data-base="googlemaps"> Google Maps</label>` +
-          `<label><input type="radio" name="basemap" data-base="googlesatellite"> Google Maps Satellite</label>` +
-          `<label><input type="radio" name="basemap" data-base="googleterrain"> Google Maps Terrain</label>` +
+          `<label><input type="radio" name="basemap" data-base="esriimagery"> Esri World Imagery</label>` +
+          // Dark Matter et Positron sont filigranés tant que CARTO n'a pas sa
+          // clé. La porte d'entrée est ici, sous les fonds concernés : c'est en
+          // les choisissant qu'on découvre le filigrane.
+          `<button class="map-dd-action" type="button" id="btn-carto-key" data-i18n="cartoKeyBtn">${t('cartoKeyBtn')}</button>` +
+          `<p class="map-dd-note" id="carto-note"></p>` +
         `</div>` +
       `</div>`;
     L.DomEvent.disableClickPropagation(div);
@@ -107,7 +110,20 @@ function ajouterControlesCarte() {
       rb.checked = (rb.dataset.base === fondActuel);
       rb.addEventListener('change', () => { if (rb.checked) appliquerFond(rb.dataset.base); });
     });
+
+    // Clé CARTO
+    div.querySelector('#btn-carto-key').addEventListener('click', ouvrirModaleCarto);
+    majNoteCarto();
     return div;
   };
   ctl.addTo(map);
+}
+
+// Note sous le choix des fonds : dit si la clé CARTO est en place. Son texte
+// est calculé, pas statique — d'où la reprise à la bascule de langue (apropos.js).
+function majNoteCarto() {
+  const note = $('carto-note');
+  if (note) note.textContent = cleCarto() ? t('cartoNoteSet') : t('cartoNoteMissing');
+  const oublier = $('btn-carto-clear');
+  if (oublier) oublier.hidden = !cleCarto();
 }

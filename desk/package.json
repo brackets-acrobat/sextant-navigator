@@ -1,6 +1,6 @@
 {
   "name": "sextant-navigator",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Sextant Navigator — catalogue d'astres, report des droites de hauteur et point astronomique, pour le sextant a bulle de Microsoft Flight Simulator 2024",
   "main": "src/main/main.js",
   "author": "Cyril MILANI",

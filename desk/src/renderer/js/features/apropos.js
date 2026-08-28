@@ -34,4 +34,5 @@ $('btn-lang-toggle').addEventListener('click', () => {
   renderVisees();      // carnet des visées reçues, idem
   renderPontEtat();    // bandeau du pont : une phrase entière, pas un libellé
   renderPlanchette();  // la feuille de position : ses libellés sont peints dans le SVG
+  majNoteCarto();      // note « clé CARTO » du menu des fonds : texte calculé
 });

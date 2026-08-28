@@ -257,6 +257,10 @@ i[class^="ph-"], i[class*=" ph-"] {
 .btn:hover,
 .btn:focus-visible { background: var(--bleu-h); outline: none; }
 .btn:hover i[class^="ph-"] { color: #fff; }
+/* `display: inline-block` ci-dessus l'emporte sur le [hidden] de la feuille du
+   navigateur : sans cette ligne, masquer un bouton par son attribut `hidden`
+   ne le masque pas. */
+.btn[hidden] { display: none; }
 .btn-accent { background: var(--bleu); color: #fff; }
 .btn-accent:hover { background: var(--bleu-h); }
 
@@ -1592,3 +1596,30 @@ main.profil-open .leaflet-control-scale { opacity: 0; visibility: hidden; }
   color: var(--muted);
   line-height: 1.35;
 }
+
+/* La note du menu des fonds est une phrase entière, pas quatre mots : sans
+   largeur minimale elle se replierait sur celle du plus long libellé de fond. */
+#ctl-fond .map-dd-note { min-width: 200px; max-width: 230px; }
+
+/* Action en bas d'un menu déroulant (« Clé API CARTO… »). Se lit comme les
+   libellés au-dessus, mais s'ouvre sur une modale — d'où le trait de séparation. */
+.map-dd-action {
+  margin-top: 6px;
+  padding: .35rem .5rem;
+  border: 0;
+  border-top: 1px solid var(--sep);
+  border-radius: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.map-dd-action:hover { background: var(--panel-2); }
+
+/* « Oublier la clé » n'est pas de la même famille qu'Annuler / Enregistrer :
+   on l'écarte à gauche pour qu'on ne l'attrape pas en visant Annuler. */
+#btn-carto-clear { margin-right: auto; }
+/* La clé se relit : en police à chasse fixe, un l et un 1 ne se ressemblent plus. */
+#carto-key { font-family: var(--mono); }

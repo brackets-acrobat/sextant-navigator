@@ -36,26 +36,62 @@ const BASE_LAYERS = {
   darkmatter: {
     url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
     options: { maxZoom: 20, subdomains: 'abcd', attribution: '© OpenStreetMap, © CARTO' },
+    carto: true,
   },
   positron: {
     url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
     options: { maxZoom: 20, subdomains: 'abcd', attribution: '© OpenStreetMap, © CARTO' },
+    carto: true,
   },
-  // Google : serveurs de tuiles mt0–mt3, paramètre lyrs = couche demandée
-  // (m = plan, s = satellite, p = relief ombré avec routes).
-  googlemaps: {
-    url: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-    options: { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], attribution: '© Google' },
-  },
-  googlesatellite: {
-    url: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-    options: { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], attribution: '© Google' },
-  },
-  googleterrain: {
-    url: 'https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
-    options: { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], attribution: '© Google' },
+  // Esri World Imagery : la vue satellite. Service public d'ArcGIS Online, sans
+  // clé, attribution demandée et fournie ci-dessous. L'ordre des segments est
+  // {z}/{y}/{x} et non {z}/{x}/{y} — c'est la convention d'ArcGIS, et l'inverser
+  // donne une mosaïque d'images justes posées aux mauvais endroits.
+  esriimagery: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    options: { maxZoom: 19, attribution: '© Esri — Esri, Maxar, Earthstar Geographics, and the GIS User Community' },
   },
 };
+
+// Les trois fonds Google (mt0–mt3.google.com/vt) ont été retirés le 2026-08-28.
+// Ils marchaient, mais sans clé ni quota parce qu'ils tapaient le serveur de
+// tuiles INTERNE du client web de Google Maps : un point d'entrée non
+// documenté, hors des API Maps Platform et de leurs conditions. Contrairement à
+// CARTO, qui a prévenu et filigrané, Google n'aurait pas de cran intermédiaire —
+// les trois fonds seraient devenus gris d'un coup, chez tout le monde à la fois.
+// Le satellite est repris par Esri World Imagery ; le plan et le relief l'étaient
+// déjà par OpenStreetMap et OpenTopoMap.
+//
+// Un fond retiré reste inscrit dans le localStorage de ceux qui l'avaient
+// choisi : on les emmène vers le plus proche voisin plutôt que de les renvoyer
+// au fond par défaut sans explication.
+const FONDS_RETIRES = {
+  googlesatellite: 'esriimagery',    // même image, source assumée
+  googlemaps:      'openstreetmap',
+  googleterrain:   'opentopomap',
+};
+
+// ------------------------------------------------------------
+// Clé API CARTO.
+//
+// CARTO demande désormais une clé sur ses fonds raster : sans elle, les tuiles
+// arrivent barrées d'un filigrane « API key required ». La clé est gratuite et
+// s'obtient en une minute sur https://carto.com/basemaps/apikey/ — mais elle
+// est NOMINATIVE, comptée sur son quota et non partageable : elle ne peut donc
+// pas être livrée avec l'application. Chacun saisit la sienne (cle-carto.js),
+// rangée dans le localStorage de sa machine et jamais transmise ailleurs.
+//
+// Sans clé, on laisse l'URL nue : les fonds CARTO restent affichables,
+// filigranés. Les autres fonds (OpenTopoMap, OSM, Google) ne sont pas concernés.
+// ------------------------------------------------------------
+const CLE_CARTO_STOCKAGE = 'sextant-carto-key';
+function cleCarto() { return (localStorage.getItem(CLE_CARTO_STOCKAGE) || '').trim(); }
+
+function urlFond(def) {
+  if (!def.carto) return def.url;
+  const cle = cleCarto();
+  return cle ? def.url + '?key=' + encodeURIComponent(cle) : def.url;
+}
 
 // Couches de données MSFS (aéroports / héliports / hydrobases / navaids).
 let airportsLayer = null, heliportsLayer = null, seaplanesLayer = null, navaidsLayer = null;
@@ -161,11 +197,20 @@ function initMap() {
 // Applique (et persiste) le fond de carte. Le tileLayer va dans le tilePane,
 // donc toujours SOUS les marqueurs.
 function appliquerFond(key) {
-  const def = BASE_LAYERS[key] || BASE_LAYERS.opentopomap;
+  const voulu = FONDS_RETIRES[key] || key;
+  const def = BASE_LAYERS[voulu] || BASE_LAYERS.opentopomap;
   if (baseLayer) map.removeLayer(baseLayer);
-  baseLayer = L.tileLayer(def.url, def.options).addTo(map);
+  baseLayer = L.tileLayer(urlFond(def), def.options).addTo(map);
   baseLayer.bringToBack();
-  localStorage.setItem('sextant-basemap', BASE_LAYERS[key] ? key : 'opentopomap');
+  localStorage.setItem('sextant-basemap', BASE_LAYERS[voulu] ? voulu : 'opentopomap');
+}
+
+// La clé CARTO vient de changer : on repose le fond pour que les tuiles soient
+// redemandées avec la nouvelle URL. Sans cela, celles déjà chargées gardent
+// leur filigrane jusqu'au prochain déplacement de la carte.
+function rafraichirFondCarto() {
+  const key = localStorage.getItem('sextant-basemap') || 'opentopomap';
+  if (BASE_LAYERS[key] && BASE_LAYERS[key].carto) appliquerFond(key);
 }
 
 // ============================================================

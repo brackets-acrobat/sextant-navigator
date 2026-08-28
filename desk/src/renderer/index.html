@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; img-src 'self' data: https://*.tile.opentopomap.org https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.google.com;">
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; img-src 'self' data: https://*.tile.opentopomap.org https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com;">
   <title>Sextant Navigator</title>
   <!-- Icônes Phosphor Light + Leaflet vendorés en local (CSP stricte, app hors-ligne) -->
   <link rel="stylesheet" href="vendor/phosphor/style.css">
@@ -641,6 +641,24 @@
     </div>
   </div>
 
+  <!-- Modale : clé API CARTO (fonds Dark Matter et Positron) -->
+  <div id="carto-overlay" class="overlay" hidden>
+    <div class="modal">
+      <h3><i class="ph-light ph-key"></i> <span data-i18n="cartoTitle">Clé API CARTO</span></h3>
+      <p class="modal-text" data-i18n="cartoText">Dark Matter et Positron viennent de CARTO, qui exige désormais une clé pour servir ses tuiles sans filigrane. Elle est gratuite, mais nominative : chacun saisit la sienne. Elle reste sur cet ordinateur et n'est envoyée qu'à CARTO, avec les tuiles.</p>
+      <p class="modal-text" data-i18n-html="cartoLink">Demandez la vôtre sur <a href="https://carto.com/basemaps/apikey/" target="_blank" rel="noopener">carto.com/basemaps/apikey</a> : elle arrive par courriel, sans file d'attente ni compte à créer.</p>
+      <label class="field-label" for="carto-key" data-i18n="cartoLabel">Votre clé</label>
+      <input id="carto-key" class="field-input" type="text" autocomplete="off" spellcheck="false"
+             data-i18n-placeholder="cartoPlaceholder" placeholder="Collez ici la clé reçue">
+      <p id="carto-error" class="modal-error"></p>
+      <div class="modal-actions">
+        <button id="btn-carto-clear" class="btn"><span data-i18n="cartoForget">Oublier la clé</span></button>
+        <button id="btn-carto-cancel" class="btn"><span data-i18n="btnCancel">Annuler</span></button>
+        <button id="btn-carto-ok" class="btn btn-accent"><i class="ph-light ph-check"></i> <span data-i18n="cartoSave">Enregistrer</span></button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modale « À propos » (bouton « ? » du header) -->
   <div id="about-overlay" class="overlay" hidden>
     <div class="modal about-modal">
@@ -684,6 +702,7 @@
   <script src="js/features/carte.js"></script>
   <script src="js/features/couches-msfs.js"></script>
   <script src="js/features/controles-carte.js"></script>
+  <script src="js/features/cle-carto.js"></script>
   <script src="js/features/menu-contextuel.js"></script>
   <script src="js/features/cercles-portee.js"></script>
   <script src="js/features/route.js"></script>

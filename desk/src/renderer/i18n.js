@@ -181,6 +181,20 @@ const TRANSLATIONS = {
     basemapTitle: 'Fond de carte',
     followTitle: 'Garder l\'estime au centre',
 
+    // Clé API CARTO (fonds Dark Matter et Positron)
+    cartoKeyBtn: 'Clé API CARTO…',
+    cartoNoteSet: 'Clé CARTO enregistrée : Dark Matter et Positron sont sans filigrane.',
+    cartoNoteMissing: 'Sans clé CARTO, Dark Matter et Positron sont filigranés.',
+    cartoTitle: 'Clé API CARTO',
+    cartoText: 'Dark Matter et Positron viennent de CARTO, qui exige désormais une clé pour servir ses tuiles sans filigrane. Elle est gratuite, mais nominative : chacun saisit la sienne. Elle reste sur cet ordinateur et n\'est envoyée qu\'à CARTO, avec les tuiles.',
+    cartoLink: 'Demandez la vôtre sur <a href="https://carto.com/basemaps/apikey/" target="_blank" rel="noopener">carto.com/basemaps/apikey</a> : elle arrive par courriel, sans file d\'attente ni compte à créer.',
+    cartoLabel: 'Votre clé',
+    cartoPlaceholder: 'Collez ici la clé reçue',
+    cartoEmpty: 'Saisissez la clé reçue de CARTO.',
+    cartoInvalid: 'Cette clé contient un espace ou un caractère inattendu : vérifiez le copier-coller.',
+    cartoSave: 'Enregistrer',
+    cartoForget: 'Oublier la clé',
+
     // Panneau « Plan de vol » (tableau des legs)
     legsToggle: 'Afficher plan de vol',
     copyWpTitle: 'Copier les points tournants',
@@ -625,6 +639,20 @@ const TRANSLATIONS = {
     layerZoomNote: 'These layers appear from zoom 8 onwards.',
     basemapTitle: 'Base map',
     followTitle: 'Keep the DR position centred',
+
+    // CARTO API key (Dark Matter and Positron basemaps)
+    cartoKeyBtn: 'CARTO API key…',
+    cartoNoteSet: 'CARTO key saved: Dark Matter and Positron come through unwatermarked.',
+    cartoNoteMissing: 'Without a CARTO key, Dark Matter and Positron are watermarked.',
+    cartoTitle: 'CARTO API key',
+    cartoText: 'Dark Matter and Positron come from CARTO, which now requires a key to serve its tiles without a watermark. The key is free but personal: everyone enters their own. It stays on this computer and is only ever sent to CARTO, along with the tile requests.',
+    cartoLink: 'Request yours at <a href="https://carto.com/basemaps/apikey/" target="_blank" rel="noopener">carto.com/basemaps/apikey</a> — it arrives by email, with no approval queue and no account to create.',
+    cartoLabel: 'Your key',
+    cartoPlaceholder: 'Paste the key you received',
+    cartoEmpty: 'Enter the key you received from CARTO.',
+    cartoInvalid: 'This key contains a space or an unexpected character — check the copy-paste.',
+    cartoSave: 'Save',
+    cartoForget: 'Forget the key',
 
     // Landing-spot popup ("Landing spots" layer)
     // Flight plan panel (legs table)
