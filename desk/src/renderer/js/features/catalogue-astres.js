@@ -78,6 +78,31 @@ function catalogueSimDispo() {
 
 const deg3 = (v) => (Number.isFinite(v) ? String(Math.round(v) % 360).padStart(3, '0') + '°' : '—');
 const deg1 = (v) => (Number.isFinite(v) ? v.toFixed(1) + '°' : '—');
+
+/*
+ * LA HAUTEUR S'ECRIT COMME LE TAMBOUR, PAS EN DEGRES DECIMAUX.
+ *
+ * « 48.9° » et « 48° 54.0′ » sont le meme angle, mais le tambour ne sait lire
+ * que le second : neuf dixiemes de degre valent cinquante-quatre minutes, pas
+ * neuf. Tant que cette colonne etait en decimal, le navigateur lisait 48.9 et
+ * affichait 48°09′ au sextant — trois quarts de degre d'ecart, l'astre hors du
+ * champ, et rien pour dire pourquoi.
+ *
+ * C'etait d'autant plus fautif que le carnet de visees ecrivait DEJA en degres
+ * et minutes : les deux moities de l'application se contredisaient sur la
+ * meme grandeur. Le gisement et l'azimut restent en degres decimaux, eux : la
+ * couronne se lit au dixieme de degre, c'est sa graduation.
+ */
+const hauteur1 = (v) => {
+  if (!Number.isFinite(v)) return '—';
+  const signe = v < 0 ? '-' : '';
+  const a = Math.abs(v);
+  let d = Math.floor(a);
+  let m = (a - d) * 60;
+  // 59,97′ s'arrondit a « 60.0 » : on reporte, sinon la minute n'existe pas.
+  if (m.toFixed(1) === '60.0') { d += 1; m = 0; }
+  return `${signe}${d}° ${m.toFixed(1).padStart(4, '0')}′`;
+};
 const mag1 = (v) => (Number.isFinite(v) ? (v > 0 ? '+' : '') + v.toFixed(1) : '—');
 const vitesse1 = (v) => (Number.isFinite(v) ? (v > 0 ? '+' : (v < 0 ? '−' : '')) + Math.abs(v).toFixed(1) : '—');
 const mult2 = (v) => (Number.isFinite(v) ? '×' + v.toFixed(2) : '—');
@@ -307,7 +332,7 @@ function dessinerEcartes() {
     // Le signe du dépassement dit de quel côté il est sorti : trop bas pour que
     // la réfraction soit sûre, ou trop haut pour que l'azimut tienne.
     const sens = e.depassement < 0 ? '↓' : '↑';
-    return `${nomAstre(e.name)} ${deg1(e.hc)} ${sens}`;
+    return `${nomAstre(e.name)} ${hauteur1(e.hc)} ${sens}`;
   });
   const reste = liste.length - bouts.length;
   el.textContent = t('astresEcartes')
@@ -397,7 +422,7 @@ function dessinerLignesAstres() {
       // que sort l'angle de coupe. Les avoir mélangés a coûté une visée prise
       // au mauvais gisement : la couronne d'un sextant périscopique est
       // solidaire de la cellule, elle ne connaît donc pas l'azimut vrai.
-      + `<td class="legs-num astres-instrument">${deg1(a.hc)}</td>`
+      + `<td class="legs-num astres-instrument">${hauteur1(a.hc)}</td>`
       + `<td class="legs-num astres-instrument astres-gt" data-rang="${i}">${deg3(a.gisement)}</td>`
       + `<td class="legs-num">${deg3(a.zn)}</td>`
       + `<td class="legs-num astres-vitesse ${classeVitesse(a.vitesse)}">${vitesse1(a.vitesse)}</td>`

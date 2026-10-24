@@ -27,6 +27,8 @@
  */
 
 /** L'ambre du panneau, pour le seul trait qu'on lit vraiment. */
+import { presenter } from './compat.js';
+
 const REPERE = 'rgba(216,162,74,0.92)';
 
 export class Drum {
@@ -208,6 +210,9 @@ export class Drum {
     ctx.strokeStyle = 'rgba(0,0,0,0.9)';
     ctx.lineWidth = 1;
     ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+    // SU7 ne reprend plus la couche tout seul : voir presenter(), compat.js.
+    presenter(canvas);
   }
 
   /**

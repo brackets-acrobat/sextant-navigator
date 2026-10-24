@@ -184,14 +184,20 @@ function renderEstime() {
 // recopie sur un carnet, pas des degrés décimaux à cinq chiffres.
 function formatLatCourt(v) {
   if (!Number.isFinite(v)) return '—';
-  const d = Math.floor(Math.abs(v));
-  const m = (Math.abs(v) - d) * 60;
+  let d = Math.floor(Math.abs(v));
+  let m = (Math.abs(v) - d) * 60;
+  // LA RETENUE : 59,97′ s'arrondit a « 60.0 », une minute qui n'existe pas.
+  // Sans elle, une position s'affiche « N 43° 60.0′ » au lieu de « N 44° 00.0′ »
+  // — et c'est une position qu'on recopie sur une carte.
+  if (m.toFixed(1) === '60.0') { d += 1; m = 0; }
   return `${v >= 0 ? 'N' : 'S'} ${d}° ${m.toFixed(1).padStart(4, '0')}′`;
 }
 function formatLonCourt(v) {
   if (!Number.isFinite(v)) return '—';
-  const d = Math.floor(Math.abs(v));
-  const m = (Math.abs(v) - d) * 60;
+  let d = Math.floor(Math.abs(v));
+  let m = (Math.abs(v) - d) * 60;
+  // Meme retenue que pour la latitude, et meme raison.
+  if (m.toFixed(1) === '60.0') { d += 1; m = 0; }
   return `${v >= 0 ? 'E' : 'W'} ${String(d).padStart(3, '0')}° ${m.toFixed(1).padStart(4, '0')}′`;
 }
 

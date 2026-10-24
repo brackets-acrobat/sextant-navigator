@@ -26,7 +26,7 @@
  * que le paquet entier.
  */
 
-import { ouSinon } from './compat.js';
+import { ouSinon, presenter } from './compat.js';
 
 /**
  * Champ de recherche, en degres. C'est celui du periscopique : 15°.
@@ -294,6 +294,8 @@ export class Viewport {
 
     this.ensureBake(w, h, dpr, m, s);
     ctx.drawImage(this.bake, 0, 0, w, h);
+    // SU7 ne reprend plus la couche tout seul : voir presenter(), compat.js.
+    presenter(canvas);
     return true;
   }
 

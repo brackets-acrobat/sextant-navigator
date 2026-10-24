@@ -40,8 +40,13 @@ function hsLisible(deg) {
   if (!Number.isFinite(deg)) return '—';
   const signe = deg < 0 ? '-' : '';
   const a = Math.abs(deg);
-  const d = Math.floor(a);
-  const m = (a - d) * 60;
+  let d = Math.floor(a);
+  let m = (a - d) * 60;
+  // LA RETENUE : 59,97′ s'arrondit a « 60.0 », une minute qui n'existe pas.
+  // Une visee sur six cents tombe dans cette tranche — assez rare pour n'avoir
+  // jamais ete vue, assez frequent pour finir par l'etre, et le lecteur
+  // conclurait a une faute de calcul la ou il n'y a qu'un arrondi.
+  if (m.toFixed(1) === '60.0') { d += 1; m = 0; }
   return `${signe}${d}° ${m.toFixed(1).padStart(4, '0')}′`;
 }
 

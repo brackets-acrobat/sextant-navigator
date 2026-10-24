@@ -13,97 +13,97 @@
     {
       "path": "html_ui/ingamepanels/sextant/app/app.js",
       "size": 42986,
-      "date": 134321504124400000
+      "date": 134373457635960000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/compat.js",
-      "size": 1371,
-      "date": 134316356279930000
+      "size": 2875,
+      "date": 134373469758140000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/controls.js",
-      "size": 6284,
-      "date": 134317327734780000
+      "size": 6576,
+      "date": 134373469758340000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/calibration.js",
       "size": 10594,
-      "date": 134323464565610000
+      "date": 134373469869700000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/catalog.js",
       "size": 11789,
-      "date": 134323464565620000
+      "date": 134373469869820000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/epoch.js",
       "size": 3337,
-      "date": 134323464565620000
+      "date": 134373469869850000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/estime.js",
       "size": 6109,
-      "date": 134323464565630000
+      "date": 134373469869870000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/index.js",
       "size": 26525,
-      "date": 134323464565630000
+      "date": 134373469869990000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/moon.js",
       "size": 9231,
-      "date": 134323464565650000
+      "date": 134373469870130000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/nutation.js",
       "size": 1852,
-      "date": 134323464565650000
+      "date": 134373469870150000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/planets.js",
       "size": 7083,
-      "date": 134323464565660000
+      "date": 134373469870160000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/plotting.js",
       "size": 10604,
-      "date": 134323464565670000
+      "date": 134373469870280000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/quality.js",
       "size": 7584,
-      "date": 134323464565790000
+      "date": 134373469870290000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/reduce.js",
       "size": 12168,
-      "date": 134323464565820000
+      "date": 134373469870440000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/stars.js",
       "size": 3717,
-      "date": 134323464565830000
+      "date": 134373469870450000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/sun.js",
       "size": 2421,
-      "date": 134323464565840000
+      "date": 134373469870470000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/time.js",
       "size": 5369,
-      "date": 134323464565850000
+      "date": 134373469870600000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/core/vsop87.js",
       "size": 86383,
-      "date": 134323464565880000
+      "date": 134373469870720000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/drum.js",
-      "size": 13290,
-      "date": 134320744768540000
+      "size": 13439,
+      "date": 134373469758340000
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/fonts/license-dejavu.txt",
@@ -137,13 +137,13 @@
     },
     {
       "path": "html_ui/ingamepanels/sextant/app/viewport.js",
-      "size": 43378,
-      "date": 134320823762540000
+      "size": 43492,
+      "date": 134373469758310000
     },
     {
       "path": "html_ui/ingamepanels/sextant/sextant.css",
-      "size": 5211,
-      "date": 134320803853570000
+      "size": 5357,
+      "date": 134373469848220000
     },
     {
       "path": "html_ui/ingamepanels/sextant/sextant.html",
@@ -158,7 +158,7 @@
     {
       "path": "ingamepanels/ingamepanel_sextant.spb",
       "size": 660,
-      "date": 134323464565970000
+      "date": 134373469870750000
     }
   ]
 }

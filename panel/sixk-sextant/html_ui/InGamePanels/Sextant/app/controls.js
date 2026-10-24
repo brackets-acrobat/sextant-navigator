@@ -16,6 +16,8 @@
  */
 
 /** L'ambre du panneau : la lampe, et elle seule. */
+import { presenter } from './compat.js';
+
 const LAMPE = '216,162,74';
 
 /** Base commune : mesure gardee en cache, dessin a la demande. */
@@ -46,6 +48,10 @@ class Plaque {
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
+    // SU7 ne reprend plus la couche tout seul : voir presenter(), compat.js.
+    // Ici plutot qu'en fin de dessin : `prepare()` est le passage commun des
+    // deux commandes peintes, et la marque vaut pour l'image entiere.
+    presenter(canvas);
     return { ctx, w, h };
   }
 
